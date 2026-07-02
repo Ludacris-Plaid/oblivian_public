@@ -401,7 +401,7 @@ const App: React.FC = () => {
             <GlobeComponent nodes={data.nodes || []} compact />
           </div>
           {/* Title overlay top-left */}
-          <div style={{ position: "absolute", top: 10, left: 14, zIndex: 10 }}>
+          <div style={{ position: "absolute", top: 10, left: 14, zIndex: 5000 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
               <h1 style={{ margin: 0, color: '#00ff88', fontSize: 26, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textShadow: '0 0 12px rgba(0,255,136,0.3)' }}>OBLIVIAN</h1>
               <span style={{ color: '#334', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>C2 v2.0</span>
@@ -409,7 +409,7 @@ const App: React.FC = () => {
             <div style={{ color: '#00ff8877', fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: 'italic', letterSpacing: 2, fontWeight: 300 }}>Fear the ones who own the dark</div>
           </div>
           {/* Badges overlay top-right */}
-          <div style={{ position: "absolute", top: 6, right: 6, zIndex: 10, display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
+          <div style={{ position: "absolute", top: 6, right: 6, zIndex: 5000, display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
             <SynthBadge connected={connected} activeNodes={stats.active_nodes} />
             <IPBadge />
             <KillSwitchButton

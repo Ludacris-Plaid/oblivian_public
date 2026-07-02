@@ -477,7 +477,7 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
           <button onClick={() => setShowMap(!showMap)} style={{ fontSize: 9, color: showMap ? "#ffd700" : "#aaa", fontFamily: "'JetBrains Mono', monospace", background: "rgba(6,6,14,0.9)", border: "1px solid rgba(255,255,255,0.2)", padding: "3px 10px", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}>{showMap ? '🌐 GLOBE' : '🗺️ MAP'}</button>
         </div>
         {showMap ? (
-          <MapContainer center={[20, 0]} zoom={1.5} style={{ width: "100%", height: "100%" }} zoomControl={false} attributionControl={false} scrollWheelZoom={false} dragging={true}>
+          <MapContainer center={[20, 0]} zoom={1.5} style={{ width: "100%", height: "100%" }} zoomControl={false} attributionControl={false} scrollWheelZoom={true} dragging={true}>
             <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
             {enrichedNodes.filter(n => n.lat && n.lng).map(n => (
               <Marker key={n.id} position={[n.lat!, n.lng!]} icon={MARKER_ICON}>
