@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { API_URL } from "../config";
 
 const COUNTRY_FLAGS: Record<string, string> = {
   'Germany': '🇩🇪', 'Netherlands': '🇳🇱', 'France': '🇫🇷', 'Sweden': '🇸🇪',
@@ -18,8 +19,8 @@ const IPBadge: React.FC = () => {
     try {
       const [ipRes, torRes, proxyRes] = await Promise.all([
         fetch('http://ip-api.com/json/?fields=query,city,country,countryCode,isp'),
-        fetch('http://localhost:8000/api/tor/check-ip'),
-        fetch('http://localhost:8000/api/rotating-proxy/status'),
+        fetch(API_URL + '/api/tor/check-ip'),
+        fetch(API_URL + '/api/rotating-proxy/status'),
       ]);
       const ipData = await ipRes.json();
       const torData = await torRes.json();

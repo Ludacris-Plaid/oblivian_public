@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
+import { API_URL } from "../config";
 
 const API = "http://localhost:8000";
 

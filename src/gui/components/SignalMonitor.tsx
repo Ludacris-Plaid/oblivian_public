@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GlitchNumber from './GlitchNumber';
+import { API_URL } from "../config";
 
 interface FreqBand {
   label: string;
@@ -104,8 +105,8 @@ export default function SignalMonitor() {
     const poll = async () => {
       try {
         const [evRes, ctxRes] = await Promise.all([
-          fetch('http://localhost:8000/api/events'),
-          fetch('http://localhost:8000/api/ai/context'),
+          fetch(API_URL + '/api/events'),
+          fetch(API_URL + '/api/ai/context'),
         ]);
         const evData = await evRes.json();
         const ctxData = await ctxRes.json();
@@ -352,10 +353,10 @@ function Ticker() {
     const poll = async () => {
       try {
         const [evRes, hRes, ctxRes, simRes] = await Promise.all([
-          fetch('http://localhost:8000/api/events'),
-          fetch('http://localhost:8000/health'),
-          fetch('http://localhost:8000/api/ai/context'),
-          fetch('http://localhost:8000/api/simulation/status'),
+          fetch(API_URL + '/api/events'),
+          fetch(API_URL + '/health'),
+          fetch(API_URL + '/api/ai/context'),
+          fetch(API_URL + '/api/simulation/status'),
         ]);
         if (alive) {
           const evData = await evRes.json();

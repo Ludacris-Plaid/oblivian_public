@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlitchNumber from './GlitchNumber';
+import { API_URL } from "../config";
 
 interface Connection {
   id: string;
@@ -41,9 +42,9 @@ export default function Netwatch() {
     const poll = async () => {
       try {
         const [evRes, hRes, ctxRes] = await Promise.all([
-          fetch('http://localhost:8000/api/events'),
-          fetch('http://localhost:8000/health'),
-          fetch('http://localhost:8000/api/ai/context'),
+          fetch(API_URL + '/api/events'),
+          fetch(API_URL + '/health'),
+          fetch(API_URL + '/api/ai/context'),
         ]);
         const evData = await evRes.json();
         const hData = await hRes.json();

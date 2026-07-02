@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
+import { API_URL } from "../config";
 
 interface Event {
   timestamp: string;

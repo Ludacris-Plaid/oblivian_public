@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_URL } from "../config";
 
 interface TimezoneData {
   city: string;
@@ -212,8 +213,8 @@ export default function GlitchClock() {
     const checkExit = async () => {
       try {
         const [torRes, proxyRes] = await Promise.all([
-          fetch('http://localhost:8000/api/tor/check-ip'),
-          fetch('http://localhost:8000/api/rotating-proxy/status'),
+          fetch(API_URL + '/api/tor/check-ip'),
+          fetch(API_URL + '/api/rotating-proxy/status'),
         ]);
         const torData = await torRes.json();
         const proxyData = await proxyRes.json();

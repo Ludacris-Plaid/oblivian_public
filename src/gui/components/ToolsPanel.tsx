@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import ToolVisual from "./ToolVisual";
+import { API_URL } from "../config";
 
 const API = "http://localhost:8000";
 

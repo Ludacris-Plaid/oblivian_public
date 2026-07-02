@@ -29,6 +29,7 @@ import LoginScreen from "./components/LoginScreen";
 import MemoryPanel from "./components/MemoryPanel";
 import ToolsPanel from "./components/ToolsPanel";
 import IPBadge from "./components/IPBadge";
+import { API_URL } from "./config";
 
 function useWindowSize() {
   const [size, setSize] = useState({ width: window.innerWidth });
@@ -363,7 +364,7 @@ const App: React.FC = () => {
     if (burnPin !== "1381") { setShowBurnPin(false); setBurnPin(""); return; }
     setBurning(true); setShowBurnPin(false); setBurnPin("");
     try {
-      await fetch("http://localhost:8000/api/kill-switch", {
+      await fetch(API_URL + "/api/kill-switch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: "1381" }),

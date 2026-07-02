@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "../config";
 
 interface Message {
   id: string;
@@ -35,12 +36,12 @@ const AIChat: React.FC = () => {
   const selectProvider = async (name: string) => {
     setSelectingProvider(true);
     try {
-      await fetch('http://localhost:8000/api/ai/provider/select', {
+      await fetch(API_URL + '/api/ai/provider/select', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: name }),
       });
       // Force model refresh
-      const r = await fetch('http://localhost:8000/api/ai/model');
+      const r = await fetch(API_URL + '/api/ai/model');
       const d = await r.json();
       setActiveModel(d.model || 'unknown');
       setIsFallback(d.is_fallback || false);
@@ -51,7 +52,7 @@ const AIChat: React.FC = () => {
 
   useEffect(() => {
     const poll = () => {
-      fetch('http://localhost:8000/api/ai/model')
+      fetch(API_URL + '/api/ai/model')
         .then(r => r.json())
         .then(d => {
           setActiveModel(d.model || d.provider || 'unknown');
@@ -67,7 +68,7 @@ const AIChat: React.FC = () => {
 
   // Load persistent conversation history from Turso cloud memory
   useEffect(() => {
-    fetch('http://localhost:8000/api/memory/conversations?limit=20')
+    fetch(API_URL + '/api/memory/conversations?limit=20')
       .then(r => r.json())
       .then(d => {
         if (d.conversations && d.conversations.length > 0) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { WS_URL } from "../config";
 
 interface WebSocketData {
   nodes: Array<{
@@ -47,8 +48,6 @@ interface WebSocketData {
     payload?: Record<string, unknown>;
   };
 }
-
-const WS_URL = "ws://localhost:8000/ws/dashboard";
 
 export interface UseWebSocketReturn {
   data: WebSocketData | null;

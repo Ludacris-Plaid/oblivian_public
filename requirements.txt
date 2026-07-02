@@ -1,7 +1,9 @@
 fastapi
 uvicorn[standard]
 redis
+httpx
+python-dotenv
 aiofiles
+cryptography
+websockets
 pyyaml
-pyrogram
-starlette

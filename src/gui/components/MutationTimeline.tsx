@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { API_URL } from "../config";
 
 interface MutationEntry {
   timestamp: string;
@@ -26,7 +27,7 @@ export default function MutationTimeline() {
     let alive = true;
     const poll = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/events');
+        const res = await fetch(API_URL + '/api/events');
         const data = await res.json();
         const events = data.events || [];
         const mutations = events

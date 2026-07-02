@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "../config";
 
 const API = "http://localhost:8000";
 

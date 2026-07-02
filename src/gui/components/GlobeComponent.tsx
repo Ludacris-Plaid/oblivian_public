@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { API_URL } from "../config";
 
 interface Node {
   id: string;
@@ -441,8 +442,8 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
       } catch {}
       try {
         const [torR, proxyRes] = await Promise.all([
-          fetch('http://localhost:8000/api/tor/check-ip'),
-          fetch('http://localhost:8000/api/rotating-proxy/status'),
+          fetch(API_URL + '/api/tor/check-ip'),
+          fetch(API_URL + '/api/rotating-proxy/status'),
         ]);
         const torD = await torR.json();
         const proxyD = await proxyRes.json();
@@ -475,6 +476,14 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
           <span style={{ fontSize: 9, color: "#00ff88", fontFamily: "'JetBrains Mono', monospace", background: "rgba(6,6,14,0.9)", padding: "3px 10px", borderRadius: 4 }}>{onlineCount} online</span>
           <span style={{ fontSize: 9, color: "#ffd700", fontFamily: "'JetBrains Mono', monospace", background: "rgba(6,6,14,0.9)", padding: "3px 10px", borderRadius: 4 }}>{pendingCount} pending</span>
           <button onClick={() => setShowMap(!showMap)} style={{ fontSize: 9, color: showMap ? "#ffd700" : "#aaa", fontFamily: "'JetBrains Mono', monospace", background: "rgba(6,6,14,0.9)", border: "1px solid rgba(255,255,255,0.2)", padding: "3px 10px", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}>{showMap ? '🌐 GLOBE' : '🗺️ MAP'}</button>
+        </div>
+        {/* Shift+scroll zoom hint */}
+        <div style={{ position: "absolute", top: 98, left: 14, zIndex: 10000, display: "flex", alignItems: "center", gap: 5 }}>
+          <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, fontWeight: 600 }}>SHIFT</span>
+          <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>+</span>
+          <span style={{ color: "#00ff8866", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>SCROLL</span>
+          <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>=</span>
+          <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>ZOOM</span>
         </div>
         {showMap ? (
           <MapContainer center={[20, 0]} zoom={1.5} style={{ width: "100%", height: "100%" }} zoomControl={false} attributionControl={false} scrollWheelZoom={true} dragging={true}>
