@@ -2,9 +2,7 @@ services:
   # Backend Python API + WebSocket server
   - type: web
     name: oblivian-api
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.c2_server.app:app --host 0.0.0.0 --port 8000
+    env: docker
     plan: free
     envVars:
       - key: FEATHERLESS_API_KEY
