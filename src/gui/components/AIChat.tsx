@@ -56,14 +56,6 @@ const AIChat: React.FC = () => {
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const hiddenRef = useRef<Set<string>>(new Set());
-  const [forceUpdate, setForceUpdate] = useState(0);
-  const isCollapsed = (id: string) => hiddenRef.current.has(id);
-  const toggleCollapse = (id: string) => {
-    if (hiddenRef.current.has(id)) hiddenRef.current.delete(id);
-    else hiddenRef.current.add(id);
-    setForceUpdate(n => n + 1);
-  };
   const [showProviderMenu, setShowProviderMenu] = useState(false);
   const [selectingProvider, setSelectingProvider] = useState(false);
 
@@ -117,7 +109,6 @@ const AIChat: React.FC = () => {
               const { thinking, clean } = extractThinking(c.content);
               msg.thinking = thinking || undefined;
               msg.content = clean;
-              if (msg.thinking) hiddenRef.current.add(msg.id);
             }
             return msg;
           });
@@ -230,7 +221,6 @@ const scrollToBottom = () => {
       }
 
       const msgId = (Date.now() + 1).toString();
-      if (thinkText) { hiddenRef.current.add(msgId); setForceUpdate(n => n + 1); }
       setMessages((prev) => [...prev, {
         id: msgId,
         role: "ai",
@@ -281,7 +271,6 @@ const scrollToBottom = () => {
       }
 
       const mutMsgId = (Date.now() + 1).toString();
-      if (thinkText) { hiddenRef.current.add(mutMsgId); setForceUpdate(n => n + 1); }
       setMessages((prev) => [...prev, {
         id: mutMsgId,
         role: "ai",
@@ -385,45 +374,10 @@ const scrollToBottom = () => {
                     {msg.role === "user" ? "You" : "Chatz"}
                   </div>
                   {msg.thinking && (
-                    <div style={{ marginBottom: 8 }}>
-                      <div
-                        onClick={() => {
-                          toggleCollapse(msg.id);
-                        }}
-                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
-                      >
-                        <span style={{
-                          color: "#c084fc", fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace",
-                          display: "inline-block", transform: isCollapsed(msg.id) ? "rotate(0deg)" : "rotate(90deg)",
-                          transition: "transform 0.2s ease",
-                        }}>▶</span>
-                        <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>
-                          CHATZ REASONING
-                        </span>
-                        <span style={{ color: "#666", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", marginLeft: "auto" }}>
-                          {isCollapsed(msg.id) ? "show" : "hide"}
-                        </span>
-                      </div>
-                      <div style={{
-                        overflow: "hidden",
-                        maxHeight: isCollapsed(msg.id) ? 0 : 250,
-                        opacity: isCollapsed(msg.id) ? 0 : 1,
-                        transition: "max-height 0.3s ease, opacity 0.2s ease",
-                        background: "rgba(168,85,247,0.06)",
-                        borderLeft: "3px solid rgba(168,85,247,0.4)",
-                        borderRadius: "0 6px 6px 0",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 10,
-                        color: "#b0b0d0",
-                        fontStyle: "italic",
-                        lineHeight: 1.7,
-                        whiteSpace: "pre-wrap",
-                        padding: isCollapsed(msg.id) ? "0 12px" : "10px 12px",
-                        overflowY: "auto",
-                      }}>
-                        {msg.thinking}
-                      </div>
-                    </div>
+                    <details style={{ marginBottom: 8 }}>
+                      <summary style={styles.thinkSummary}>CHATZ REASONING</summary>
+                      <div style={styles.thinkBody}>{msg.thinking}</div>
+                    </details>
                   )}
                   <div style={msg.role === "user" ? styles.userMsg : styles.aiMsg}>
                     {renderContent(msg.content)}
@@ -709,6 +663,20 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "'JetBrains Mono', monospace",
     fontSize: 11,
     lineHeight: 1.3,
+  },
+  thinkSummary: {
+    color: "#c084fc", fontSize: 9, fontWeight: 700, cursor: "pointer",
+    fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase" as const,
+    letterSpacing: 1, padding: "5px 8px", borderRadius: 6,
+    background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)",
+    listStyle: "none", userSelect: "none" as const,
+  },
+  thinkBody: {
+    background: "rgba(168,85,247,0.06)", borderLeft: "3px solid rgba(168,85,247,0.4)",
+    borderRadius: "0 6px 6px 0", fontFamily: "'JetBrains Mono', monospace",
+    fontSize: 10, color: "#b0b0d0", fontStyle: "italic" as const,
+    lineHeight: 1.7, whiteSpace: "pre-wrap" as const,
+    maxHeight: 250, overflowY: "auto" as const, padding: "10px 12px", marginTop: 4,
   },
 };
 
