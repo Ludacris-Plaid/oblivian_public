@@ -1863,7 +1863,7 @@ async def tools_cancel(execution_id: int):
 
 
 # ── Serve frontend static files ─────────────────────────────────────────
-dist_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dist")
+dist_dir = os.path.abspath("dist")
 if os.path.isdir(dist_dir):
     app.mount("/assets", StaticFiles(directory=os.path.join(dist_dir, "assets")), name="assets")
     from fastapi.responses import FileResponse
