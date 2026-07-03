@@ -1213,7 +1213,7 @@ class SpammerEngine:
             self.stats["clicks"] += 1
         self._recalc_rates()
 
-    async def get_status(self) -> dict:
+    def get_status(self) -> dict:
         return {
             "active": self.active,
             "stats": self.stats,
