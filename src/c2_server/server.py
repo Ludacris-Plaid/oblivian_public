@@ -8,6 +8,7 @@ import aiofiles.os
 import aiofiles.threadpool
 import redis.asyncio as aioredis
 import json
+import os
 
 
 class C2Server:
@@ -536,5 +537,5 @@ class C2Server:
 c2_server = C2Server(
     host="0.0.0.0",
     port=8000,
-    redis_url="redis://localhost:6379",
+    redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
 )
