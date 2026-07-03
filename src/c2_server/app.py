@@ -2169,7 +2169,11 @@ async def ip_lookup(fields: str = "query", request: Request = None):
         params["query"] = client_ip
     async with httpx.AsyncClient() as client:
         r = await client.get("http://ip-api.com/json/", params=params, timeout=10)
-        return r.json()
+        result = r.json()
+        # Debug: attach what the server saw
+        result["_debug_client_ip"] = client_ip
+        result["_debug_forwarded_for"] = request.headers.get("x-forwarded-for", "") if request else ""
+        return result
 
 
 @app.get("/api/debug-headers")
