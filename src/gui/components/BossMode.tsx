@@ -32,13 +32,13 @@ const BossMode: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [exitClicks, setExitClicks] = useState(0);
   const exitTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const handleScreenClick = () => {
+  const handleScreenClick = (e: React.MouseEvent) => {
+    // Ignore clicks on buttons, inputs (calculator, table actions, etc.)
+    const target = e.target as HTMLElement;
+    if (target.tagName === "BUTTON" || target.tagName === "INPUT" || target.closest("button") || target.closest("input")) return;
     setExitClicks(prev => {
       const next = prev + 1;
-      if (next >= 3) {
-        onExit();
-        return 0;
-      }
+      if (next >= 3) { onExit(); return 0; }
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
       exitTimerRef.current = setTimeout(() => setExitClicks(0), 2000);
       return next;
