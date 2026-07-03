@@ -184,9 +184,9 @@ const IPBadge: React.FC = () => {
         }
       }
 
-      // Flag — bigger and bolder
-      ctx.font = '24px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      ctx.shadowColor = col; ctx.shadowBlur = connected ? 4 : 0;
+      // Flag — big and clean (no shadow — keeps emoji crisp)
+      ctx.font = '26px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.shadowBlur = 0;
       ctx.fillText(ipStatus.flag || '🌐', 8, h / 2);
       ctx.shadowBlur = 0;
 
