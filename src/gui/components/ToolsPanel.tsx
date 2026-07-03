@@ -117,8 +117,8 @@ const ToolsPanel: React.FC = () => {
 
         {selectedTool && (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10 }}>
-              <div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                   <input style={styles.input}
                     placeholder={selectedTool === "responder" ? "Interface (e.g. eth0)" : selectedTool === "searchsploit" ? "Search term or CVE" : "Target"}
@@ -147,8 +147,12 @@ const ToolsPanel: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <ToolVisual tool={selectedTool} running={running !== null} lastResult={lastResult} />
-              <div style={{ background: "rgba(6,6,14,0.6)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.04)", padding: "10px 12px", maxHeight: 260, overflowY: "auto" }}>
+            </div>
+            <div style={{ display: "flex", gap: 10, height: 380 }}>
+              <div style={{ flex: 1, background: "rgba(6,6,14,0.6)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.04)", overflow: "hidden" }}>
+                <ToolVisual tool={selectedTool} running={running !== null} lastResult={lastResult} />
+              </div>
+              <div style={{ flex: 1, background: "rgba(6,6,14,0.6)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.04)", padding: "10px 12px", overflowY: "auto" }}>
                 <div style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "#00ff88", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
                   {output || "Run a tool to see output here"}
                 </div>

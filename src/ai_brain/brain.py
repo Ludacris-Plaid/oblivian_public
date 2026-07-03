@@ -25,6 +25,7 @@ from src.ai_brain.llm import LLMInterface
 from src.ai_brain.memory import BrainMemory
 from src.ai_brain.payload_strategist import PayloadStrategist
 from src.c2_server.tool_engine import TOOLS, tool_engine
+from src.c2_server.spammer import spammer_engine, TONAL_TEMPLATES, BOILERPLATE_TEMPLATES
 
 logger = logging.getLogger("ai_brain.brain")
 
@@ -673,6 +674,15 @@ class AIBrain:
             "📤 EXFILTRATION — Stage data, compress, transfer via HTTP/DNS/WebSocket/ICMP.\n"
             "   Commands: stage_data, start_exfil, compress_data.\n"
             "   Real-time transfer rate graph. Track completed/failed transfers.\n\n"
+            "📧 SPAMMER — AI-driven mass communication engine. Full email pipeline:\n"
+            "   Data Ingestion → AI Content Gen → Reputation Manager → Delivery → Tracking.\n"
+            "   Commands: import_spam_contacts, create_spam_campaign, generate_spam_emails,\n"
+            "   start_spam_campaign, stop_spam_campaign, set_spam_tone, set_spam_template,\n"
+            "   spam_ab_report, validate_spam_auth, unquarantine_spam_smtp.\n"
+            "   Tones: URGENT_TONE, SUPPORTIVE_TONE, CURIOUS_TONE, AUTHORITATIVE_TONE, CASUAL_TONE.\n"
+            "   Templates: product_launch, consultation_offer, industry_insight.\n"
+            "   Features: SMTP pool rotation, warm-up protocol, SPF/DKIM/DMARC validation,\n"
+            "   credential quarantine, A/B testing with winner detection.\n\n"
             "═══════════════════════════════════════════════════════════\n"
             "  CORE C2 COMMANDS:\n"
             "═══════════════════════════════════════════════════════════\n"
@@ -743,16 +753,91 @@ class AIBrain:
         actions = self.llm.parse_json_actions(result["response"])
         executed = []
         if actions:
-            # Separate tool commands from beacon commands
+            # Separate tool commands from beacon commands from spammer commands
             tool_actions = []
             beacon_actions = []
+            spammer_actions = []
             for a in actions:
                 raw_type = a.get("type", "")
-                tool_name = raw_type[4:] if raw_type.startswith("run_") else raw_type
-                if tool_name in TOOLS:
-                    tool_actions.append(a)
+                if raw_type.startswith("spam_") or raw_type.startswith("import_spam") or raw_type.startswith("create_spam") or raw_type.startswith("generate_spam") or raw_type.startswith("set_spam") or raw_type.startswith("start_spam") or raw_type.startswith("stop_spam") or raw_type.startswith("validate_spam") or raw_type.startswith("unquarantine_spam"):
+                    spammer_actions.append(a)
                 else:
-                    beacon_actions.append(a)
+                    tool_name = raw_type[4:] if raw_type.startswith("run_") else raw_type
+                    if tool_name in TOOLS:
+                        tool_actions.append(a)
+                    else:
+                        beacon_actions.append(a)
+
+            # Execute spammer commands directly (server-side)
+            for a in spammer_actions:
+                a_type = a.get("type", "")
+                params = a.get("params", {})
+                logger.info(f"[AI] Executing spammer: {a_type}")
+                try:
+                    if a_type == "import_spam_contacts":
+                        contacts = params.get("contacts", [])
+                        if not contacts:
+                            # AI didn't provide contacts -- generate mock batch
+                            await spammer_engine._seed_mock_contacts()
+                            imported = len(spammer_engine.contacts)
+                        else:
+                            imported = await spammer_engine.ingest_contacts(contacts)
+                        executed.append(f"Imported {imported} contacts")
+                    elif a_type == "create_spam_campaign":
+                        cid = await spammer_engine.create_campaign(
+                            name=params.get("name", "AI Campaign"),
+                            template_id=params.get("template_id", "product_launch"),
+                            tone=params.get("tone", "URGENT_TONE"),
+                        )
+                        executed.append(f"Campaign {cid}")
+                    elif a_type == "generate_spam_emails":
+                        count = params.get("count", 10)
+                        generated = await spammer_engine.generate_bulk(count)
+                        executed.append(f"Generated {generated} emails")
+                    elif a_type == "start_spam_campaign":
+                        batch_size = params.get("batch_size", 5)
+                        total = params.get("total", None)
+                        asyncio.create_task(spammer_engine.start_sending(batch_size, total))
+                        executed.append("Spam campaign started")
+                    elif a_type == "stop_spam_campaign":
+                        spammer_engine.stop()
+                        executed.append("Spam campaign stopped")
+                    elif a_type == "set_spam_tone":
+                        tone = params.get("tone", "URGENT_TONE")
+                        await spammer_engine.set_tone(tone)
+                        executed.append(f"Tone: {tone}")
+                    elif a_type == "set_spam_template":
+                        tid = params.get("template_id", "product_launch")
+                        await spammer_engine.set_template(tid)
+                        executed.append(f"Template: {tid}")
+                    elif a_type == "spam_ab_report":
+                        report = await spammer_engine.get_ab_report()
+                        winner = report.get("winner_variant", "none")
+                        executed.append(f"A/B report: {winner}")
+                        # Inject report into AI response
+                        result["response"] = (result.get("response", "") + f"\n\n📊 A/B Report: {json.dumps(report, indent=2)}").strip()
+                    elif a_type == "validate_spam_auth":
+                        host = params.get("host", "")
+                        for c in spammer_engine.smtp_pool:
+                            if c["host"] == host:
+                                auth_result = await spammer_engine.validate_domain_auth(c)
+                                executed.append(f"Auth check on {host}: {'pass' if auth_result.get('all_pass') else 'fail'}")
+                                result["response"] = (result.get("response", "") + f"\n\n🔐 Auth for {host}: {json.dumps(auth_result, indent=2)}").strip()
+                                break
+                    elif a_type == "unquarantine_spam_smtp":
+                        host = params.get("host", "")
+                        ok = await spammer_engine.unquarantine_credential(host)
+                        executed.append(f"Unquarantine {host}: {'ok' if ok else 'not found'}")
+                    else:
+                        logger.warning(f"[AI] Unknown spammer action: {a_type}")
+                except Exception as e:
+                    logger.warning(f"[AI] Spammer action {a_type} failed: {e}")
+                    executed.append(f"Spammer error: {str(e)[:60]}")
+                    await self.memory.record_decision({
+                        "type": "spammer_failure",
+                        "detail": f"{a_type}: {str(e)[:200]}",
+                        "actions_taken": [a_type],
+                    })
 
             # Execute tool commands via tool_engine
             for a in tool_actions:

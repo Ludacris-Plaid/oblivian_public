@@ -16,6 +16,7 @@ const TABS: Tab[] = [
   { id: "proxy", label: "Chain", icon: "\uD83D\uDD17" },
   { id: "rotating", label: "Proxies", icon: "\uD83D\uDD04" },
   { id: "exfil", label: "Exfil", icon: "\uD83D\uDCE4" },
+  { id: "spammer", label: "Spammer", icon: "\uD83D\uDCE7" },
   { id: "memory", label: "Memory", icon: "\uD83E\uDDE0" },
   { id: "tools", label: "Tools", icon: "\uD83D\uDEE0\uFE0F" },
   { id: "docs", label: "Docs", icon: "\uD83D\uDCD6" },
