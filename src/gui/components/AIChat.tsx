@@ -56,7 +56,14 @@ const AIChat: React.FC = () => {
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [collapsedIds, setCollapsedIds] = useState<Record<string, boolean>>({});
+  const hiddenRef = useRef<Set<string>>(new Set());
+  const [forceUpdate, setForceUpdate] = useState(0);
+  const isCollapsed = (id: string) => hiddenRef.current.has(id);
+  const toggleCollapse = (id: string) => {
+    if (hiddenRef.current.has(id)) hiddenRef.current.delete(id);
+    else hiddenRef.current.add(id);
+    setForceUpdate(n => n + 1);
+  };
   const [showProviderMenu, setShowProviderMenu] = useState(false);
   const [selectingProvider, setSelectingProvider] = useState(false);
 
@@ -110,6 +117,7 @@ const AIChat: React.FC = () => {
               const { thinking, clean } = extractThinking(c.content);
               msg.thinking = thinking || undefined;
               msg.content = clean;
+              if (msg.thinking) hiddenRef.current.add(msg.id);
             }
             return msg;
           });
@@ -122,21 +130,6 @@ const AIChat: React.FC = () => {
       })
       .catch(() => {});
   }, []);
-
-  // Auto-collapse only new reasoning messages, never re-collapse expanded ones
-  const seenThinkRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    setCollapsedIds(prev => {
-      const next = { ...prev };
-      messages.forEach(m => {
-        if (m.thinking && !seenThinkRef.current.has(m.id)) {
-          next[m.id] = true;
-          seenThinkRef.current.add(m.id);
-        }
-      });
-      return next;
-    });
-  }, [messages]);
 
   function renderContent(text: string): React.ReactNode {
   const parts = text.split(/(```[^`]*```|```[\s\S]*?```)/g);
@@ -236,8 +229,10 @@ const scrollToBottom = () => {
         cleanContent = `[Error] ${cleanContent}`;
       }
 
+      const msgId = (Date.now() + 1).toString();
+      if (thinkText) { hiddenRef.current.add(msgId); setForceUpdate(n => n + 1); }
       setMessages((prev) => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: msgId,
         role: "ai",
         content: cleanContent,
         thinking: thinkText || undefined,
@@ -285,8 +280,10 @@ const scrollToBottom = () => {
         content = `[Error] ${result.notes || "Unknown error"}`;
       }
 
+      const mutMsgId = (Date.now() + 1).toString();
+      if (thinkText) { hiddenRef.current.add(mutMsgId); setForceUpdate(n => n + 1); }
       setMessages((prev) => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: mutMsgId,
         role: "ai",
         content,
         thinking: thinkText || undefined,
@@ -391,26 +388,26 @@ const scrollToBottom = () => {
                     <div style={{ marginBottom: 8 }}>
                       <div
                         onClick={() => {
-                          setCollapsedIds(prev => ({ ...prev, [msg.id]: !prev[msg.id] }));
+                          toggleCollapse(msg.id);
                         }}
                         style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
                       >
                         <span style={{
                           color: "#c084fc", fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace",
-                          display: "inline-block", transform: collapsedIds[msg.id] ? "rotate(0deg)" : "rotate(90deg)",
+                          display: "inline-block", transform: isCollapsed(msg.id) ? "rotate(0deg)" : "rotate(90deg)",
                           transition: "transform 0.2s ease",
                         }}>▶</span>
                         <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>
                           CHATZ REASONING
                         </span>
                         <span style={{ color: "#666", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", marginLeft: "auto" }}>
-                          {collapsedIds[msg.id] ? "show" : "hide"}
+                          {isCollapsed(msg.id) ? "show" : "hide"}
                         </span>
                       </div>
                       <div style={{
                         overflow: "hidden",
-                        maxHeight: collapsedIds[msg.id] ? 0 : 250,
-                        opacity: collapsedIds[msg.id] ? 0 : 1,
+                        maxHeight: isCollapsed(msg.id) ? 0 : 250,
+                        opacity: isCollapsed(msg.id) ? 0 : 1,
                         transition: "max-height 0.3s ease, opacity 0.2s ease",
                         background: "rgba(168,85,247,0.06)",
                         borderLeft: "3px solid rgba(168,85,247,0.4)",
@@ -421,7 +418,7 @@ const scrollToBottom = () => {
                         fontStyle: "italic",
                         lineHeight: 1.7,
                         whiteSpace: "pre-wrap",
-                        padding: collapsedIds[msg.id] ? "0 12px" : "10px 12px",
+                        padding: isCollapsed(msg.id) ? "0 12px" : "10px 12px",
                         overflowY: "auto",
                       }}>
                         {msg.thinking}
