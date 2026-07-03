@@ -18,7 +18,7 @@ const IPBadge: React.FC = () => {
   const fetchIp = useCallback(async () => {
     try {
       const [ipRes, torRes, proxyRes] = await Promise.all([
-        fetch('https://ip-api.com/json/?fields=query,city,country,countryCode,isp'),
+        fetch(API_URL + '/api/ip-lookup?fields=query,city,country,countryCode,isp'),
         fetch(API_URL + '/api/tor/check-ip'),
         fetch(API_URL + '/api/rotating-proxy/status'),
       ]);
@@ -58,7 +58,7 @@ const IPBadge: React.FC = () => {
     fetchIp();
     const id = setInterval(fetchIp, 10000);
     return () => clearInterval(id);
-  }, [fetchIp]);
+  }, [fetchIp]');
 
   // Countdown timer ref — removed, using backend lastRotationTs instead
 

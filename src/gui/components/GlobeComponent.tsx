@@ -434,7 +434,7 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
     const fetchMarkers = async () => {
       const result: CustomMarker[] = [];
       try {
-        const locR = await fetch('https://ip-api.com/json/?fields=lat,lon,city,country,timezone');
+        const locR = await fetch(API_URL + '/api/ip-lookup?fields=lat,lon,city,country,timezone');
         const locD = await locR.json();
         if (locD.lat && locD.lon) {
           result.push({ lat: locD.lat, lng: locD.lon, color: '#00d4ff', label: locD.city || locD.country || 'You', icon: '📍' });
@@ -466,7 +466,7 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
     fetchMarkers();
     const id = setInterval(fetchMarkers, 30000);
     return () => clearInterval(id);
-  }, []);
+  }, []');
 
   if (compact) {
     return (

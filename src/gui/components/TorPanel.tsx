@@ -198,7 +198,7 @@ const TorPanel: React.FC = () => {
     try {
       // Get REAL IP from client-side geolocation API
       const [ipRes, torRes] = await Promise.all([
-        fetch('https://ip-api.com/json/?fields=query,city,country,countryCode,isp,org,lat,lon'),
+        fetch(API_URL + '/api/ip-lookup?fields=query,city,country,countryCode,isp,org,lat,lon'),
         fetch(`${API}/api/tor/check-ip`),
       ]);
       const [ipData, torData] = await Promise.all([ipRes.json(), torRes.json()]);
@@ -217,7 +217,7 @@ const TorPanel: React.FC = () => {
         checked_at: new Date().toISOString(),
       });
     } catch (e) {
-      console.log('IP check failed:', e);
+      console.log('IP check failed:', e');
     }
   };
 

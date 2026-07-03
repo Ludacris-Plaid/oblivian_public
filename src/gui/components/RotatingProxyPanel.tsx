@@ -50,7 +50,7 @@ const RotatingProxyPanel: React.FC = () => {
   useEffect(() => {
     const pollIp = async () => {
       try {
-        const r = await fetch('https://ip-api.com/json/?fields=query,city,country,countryCode,isp,org,as,mobile,proxy,hosting');
+        const r = await fetch(API_URL + '/api/ip-lookup?fields=query,city,country,countryCode,isp,org,as,mobile,proxy,hosting');
         const d = await r.json();
         setIpInfo(d);
       } catch {}
@@ -58,7 +58,7 @@ const RotatingProxyPanel: React.FC = () => {
     pollIp();
     const id = setInterval(pollIp, 10000);
     return () => clearInterval(id);
-  }, []);
+  }, []');
 
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;

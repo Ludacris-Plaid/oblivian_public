@@ -1896,6 +1896,17 @@ if os.path.isdir(dist_dir):
         return JSONResponse({"detail": "Not Found"}, status_code=404)
 
 
+# ── Geolocation proxy (for ip-api.com) ────────────────────────────────
+
+@app.get("/api/ip-lookup")
+async def ip_lookup(fields: str = "query"):
+    """Proxy for ip-api.com to avoid mixed-content / CORS issues."""
+    import httpx
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"http://ip-api.com/json/?fields={fields}", timeout=10)
+        return r.json()
+
+
 # ── Startup ───────────────────────────────────────────────────────────────
 
 @app.on_event("startup")
