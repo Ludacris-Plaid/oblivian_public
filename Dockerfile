@@ -1,11 +1,3 @@
-# Frontend build stage
-FROM node:23-alpine AS frontend
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY . .
-RUN npx vite build
-
-# Backend stage
 FROM python:3.13-slim
 
 WORKDIR /app
@@ -35,11 +27,8 @@ RUN gem install wpscan
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source
+# Copy source (includes pre-built dist/)
 COPY . .
-
-# Copy frontend build
-COPY --from=frontend /build/dist /app/dist
 
 # Expose port
 EXPOSE 8000
