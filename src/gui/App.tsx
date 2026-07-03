@@ -448,7 +448,7 @@ const App: React.FC = () => {
           whileHover={{ scale: 1.04, borderColor: "rgba(255,71,87,0.5)" }}
           whileTap={{ scale: 0.96 }}
           style={{
-            position: "absolute", bottom: 12, left: 16, zIndex: 9000,
+            position: "absolute", bottom: 0, left: 12, zIndex: 9000,
             color: "#ff4757", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
             background: "rgba(255,71,87,0.08)", backdropFilter: "blur(8px)",
             border: "1px solid rgba(255,71,87,0.25)",
