@@ -140,7 +140,15 @@ class ToolEngine:
         if not spec:
             return {"status": "error", "message": f"Unknown tool: {tool_name}"}
 
-        cmd_parts = shlex.split(spec.command) + [str(a) for a in args if a]
+        cmd_args = [str(a) for a in args if a]
+
+        # nmap needs --unprivileged in Docker/containers (no raw socket access)
+        if tool_name == "nmap":
+            has_priv = any(a in ("--privileged", "--unprivileged") for a in cmd_args)
+            if not has_priv:
+                cmd_args.insert(0, "--unprivileged")
+
+        cmd_parts = shlex.split(spec.command) + cmd_args
         tmt = timeout or spec.default_timeout
         execution_id = self._next_id()
 
