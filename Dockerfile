@@ -2,12 +2,19 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install system deps for hacking tools
+# Install system deps for hacking tools (available in Debian trixie)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    nmap hydra sqlmap hashcat metasploit-framework \
-    nikto gobuster enum4linux smbmap whatweb \
-    wordlists curl git ruby && \
-    rm -rf /var/lib/apt/lists/*
+    nmap hydra sqlmap hashcat gobuster smbmap whatweb \
+    john exploitdb curl git ruby \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install nikto from git
+RUN git clone --depth 1 https://github.com/sullo/nikto /opt/nikto && \
+    ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto
+
+# Install enum4linux from git
+RUN git clone --depth 1 https://github.com/CiscoCXSecurity/enum4linux /opt/enum4linux && \
+    ln -s /opt/enum4linux/enum4linux.pl /usr/local/bin/enum4linux
 
 # Install wpscan gem
 RUN gem install wpscan
