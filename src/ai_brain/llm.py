@@ -47,7 +47,7 @@ class LLMInterface:
                 ),
                 model=os.getenv(
                     "FEATHERLESS_MODEL",
-                    "DreamFast/gemma-3-12b-it-heretic-v2",
+                    "DavidAU/Qwen3.5-9B-Claude-4.6-HighIQ-THINKING-HERETIC-UNCENSORED",
                 ),
             ))
 

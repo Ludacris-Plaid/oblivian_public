@@ -1983,6 +1983,78 @@ async def spammer_unquarantine(data: dict = Body(...)):
     return {"status": "success" if ok else "error", "unquarantined": ok}
 
 
+@app.post("/api/spammer/smtp-add")
+async def spammer_smtp_add(data: dict = Body(...)):
+    host = data.get("host", "")
+    if not host:
+        return {"status": "error", "message": "Host required"}
+    await spammer_engine.add_smtp_credential(data)
+    return {"status": "success", "pool_size": len(spammer_engine.smtp_pool)}
+
+
+@app.post("/api/spammer/smtp-remove")
+async def spammer_smtp_remove(data: dict = Body(...)):
+    host = data.get("host", "")
+    await spammer_engine.remove_smtp_credential(host)
+    return {"status": "success", "pool_size": len(spammer_engine.smtp_pool)}
+
+
+@app.post("/api/spammer/smtp-update")
+async def spammer_smtp_update(data: dict = Body(...)):
+    host = data.get("host", "")
+    field = data.get("field", "")
+    value = data.get("value")
+    await spammer_engine.update_smtp_credential(host, field, value)
+    return {"status": "success"}
+
+
+@app.post("/api/spammer/contact-add")
+async def spammer_contact_add(data: dict = Body(...)):
+    email = data.get("email", "")
+    if not email or "@" not in email:
+        return {"status": "error", "message": "Valid email required"}
+    await spammer_engine.add_contact(data)
+    return {"status": "success", "contacts": len(spammer_engine.contacts)}
+
+
+@app.post("/api/spammer/contact-remove")
+async def spammer_contact_remove(data: dict = Body(...)):
+    email = data.get("email", "")
+    await spammer_engine.remove_contact(email)
+    return {"status": "success", "contacts": len(spammer_engine.contacts)}
+
+
+@app.post("/api/spammer/generate-html")
+async def spammer_generate_html(data: dict = Body(...)):
+    prompt = data.get("prompt", "")
+    tone = data.get("tone", "URGENT_TONE")
+    if not prompt:
+        return {"status": "error", "message": "Prompt required"}
+    result = await spammer_engine.generate_html_email(prompt, tone)
+    return result
+
+
+@app.post("/api/spammer/save-draft")
+async def spammer_save_draft(data: dict = Body(...)):
+    subject = data.get("subject", "")
+    body = data.get("body", "")
+    name = data.get("name", f"Draft-{int(time.time())}")
+    draft_id = await spammer_engine.save_draft(name, subject, body)
+    return {"status": "success", "draft_id": draft_id}
+
+
+@app.get("/api/spammer/drafts")
+async def spammer_drafts():
+    return {"drafts": spammer_engine.drafts}
+
+
+@app.post("/api/spammer/delete-draft")
+async def spammer_delete_draft(data: dict = Body(...)):
+    draft_id = data.get("draft_id", "")
+    await spammer_engine.delete_draft(draft_id)
+    return {"status": "success"}
+
+
 # ── Serve frontend static files ─────────────────────────────────────────
 dist_dir = os.path.abspath("dist")
 if os.path.isdir(dist_dir):

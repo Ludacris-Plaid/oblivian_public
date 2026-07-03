@@ -135,6 +135,9 @@ class SpammerEngine:
         self.current_campaign_id: Optional[str] = None
         self.campaigns: List[Dict] = []
 
+        # ── Drafts ───────────────────────────────────────────────────
+        self.drafts: List[Dict] = []
+
         # ── Stats ──────────────────────────────────────────────────
         self.stats = {
             "contacts_scraped": 0,
@@ -1223,6 +1226,8 @@ class SpammerEngine:
             },
             "queue_size": len(self.generated_emails),
             "contacts_count": len(self.contacts),
+            "contacts": self.contacts[:100],
+            "drafts": self.drafts,
             "tones": list(TONAL_TEMPLATES.keys()),
             "templates": list(BOILERPLATE_TEMPLATES.keys()),
         }
@@ -1248,6 +1253,131 @@ class SpammerEngine:
                 "timestamp": self._row_value(r, 7, ""),
             })
         return log
+
+    # ═══════════════════════════════════════════════════════════════
+    #  SMTP pool manual management
+    # ═══════════════════════════════════════════════════════════════
+
+    async def add_smtp_credential(self, cred: Dict):
+        host = cred.get("host", "")
+        if not host or any(c.get("host") == host for c in self.smtp_pool):
+            return
+        new_cred = {
+            "host": host, "port": cred.get("port", 587),
+            "username": cred.get("username", ""), "password": cred.get("password", ""),
+            "status": "healthy", "sent_count": 0, "fail_count": 0,
+            "consecutive_failures": 0, "last_used": None, "last_error": None,
+            "warmup_day": 0, "warmup_fraction": 0.0, "warmed_up": False,
+            "daily_capacity": cred.get("daily_capacity", 1000), "auth_valid": True,
+        }
+        self.smtp_pool.append(new_cred)
+        await self.warm_up_credential(new_cred)
+        self._update_smtp_counts()
+
+    async def remove_smtp_credential(self, host: str):
+        self.smtp_pool = [c for c in self.smtp_pool if c.get("host") != host]
+        self._update_smtp_counts()
+
+    async def update_smtp_credential(self, host: str, field: str, value):
+        for c in self.smtp_pool:
+            if c.get("host") == host:
+                if field in ("port", "daily_capacity"):
+                    c[field] = int(value) if value else c[field]
+                else:
+                    c[field] = value
+                break
+
+    # ═══════════════════════════════════════════════════════════════
+    #  Contact manual management
+    # ═══════════════════════════════════════════════════════════════
+
+    async def add_contact(self, contact: Dict):
+        email = contact.get("email", "")
+        if not email or "@" not in email:
+            return
+        if any(c.get("email") == email for c in self.contacts):
+            return
+        self.contacts.append({
+            "email": email, "company": contact.get("company", ""),
+            "job_title": contact.get("job_title", ""),
+            "industry": contact.get("industry", ""),
+            "company_size": contact.get("company_size", ""),
+            "vulnerability_score": round(random.uniform(0.1, 1.0), 2),
+            "source": "manual",
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        })
+        self.stats["contacts_enriched"] += 1
+        if self._ready:
+            await self._execute(
+                "INSERT INTO spam_contacts (email, company, job_title, industry, "
+                "company_size, vulnerability_score, source, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, 'manual', datetime('now'))",
+                [email, contact.get("company", ""), contact.get("job_title", ""),
+                 contact.get("industry", ""), contact.get("company_size", ""),
+                 round(random.uniform(0.1, 1.0), 2)],
+            )
+
+    async def remove_contact(self, email: str):
+        self.contacts = [c for c in self.contacts if c.get("email") != email]
+        if self._ready:
+            await self._execute("DELETE FROM spam_contacts WHERE email = ?", [email])
+
+    # ═══════════════════════════════════════════════════════════════
+    #  HTML email generation via AI
+    # ═══════════════════════════════════════════════════════════════
+
+    async def generate_html_email(self, prompt: str, tone: str = "URGENT_TONE") -> Dict:
+        tone_instruction = TONAL_TEMPLATES.get(tone, TONAL_TEMPLATES["URGENT_TONE"])
+        system_prompt = (
+            "You are an expert email designer and copywriter. Generate a complete "
+            "professional HTML email based on the user's request.\n\n"
+            f"TONAL INSTRUCTION: {tone_instruction}\n\n"
+            "RULES:\n"
+            "- Return ONLY valid HTML: NO markdown wrappers, NO explanations.\n"
+            "- First line MUST be: Subject: <the subject line>\n"
+            "- After Subject line: full HTML body with inline CSS.\n"
+            "- Dark, professional color scheme (dark bg, light text).\n"
+            "- Responsive (max-width 600px), mobile-friendly.\n"
+            "- Clear CTA button linked to {tracking_link}.\n"
+            "- Use variables: {company}, {job_title}, {industry}, {product}.\n"
+            "- Keep HTML under 2KB. NO <html>/<head>/<body> tags."
+        )
+        from src.ai_brain.llm import LLMInterface
+        llm = LLMInterface()
+        result = await asyncio.to_thread(
+            llm.chat, system_prompt, f"Create an HTML email for: {prompt}",
+            temperature=0.8, max_tokens=2048, timeout=45,
+        )
+        if result.get("status") == "success":
+            raw = result.get("response", "")
+            lines = raw.strip().split("\n")
+            subject = prompt
+            body = raw
+            for i, line in enumerate(lines):
+                if line.lower().startswith("subject:"):
+                    subject = line.split(":", 1)[1].strip()
+                    body = "\n".join(lines[i + 1:]).strip()
+                    break
+            if body.startswith("```html"): body = body[7:]
+            if body.startswith("```"): body = body[3:]
+            if body.endswith("```"): body = body[:-3]
+            return {"status": "success", "subject": subject, "body": body.strip(), "model": result.get("model", "unknown")}
+        return {"status": "error", "subject": prompt, "body": f"<div style='padding:20px;font-family:sans-serif;color:#ccc;background:#1a1a2e'><h2>{prompt}</h2><p>AI generation failed.</p><a href='{{tracking_link}}' style='color:#00d4ff'>Click here</a></div>", "model": "fallback"}
+
+    # ═══════════════════════════════════════════════════════════════
+    #  Draft management
+    # ═══════════════════════════════════════════════════════════════
+
+    async def save_draft(self, name: str, subject: str, body: str) -> str:
+        draft_id = str(uuid.uuid4())[:8]
+        self.drafts.append({
+            "id": draft_id, "name": name, "subject": subject, "body": body,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        })
+        return draft_id
+
+    async def delete_draft(self, draft_id: str):
+        self.drafts = [d for d in self.drafts if d.get("id") != draft_id]
 
     def stop(self):
         self.active = False

