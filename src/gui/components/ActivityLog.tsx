@@ -227,7 +227,7 @@ const ActivityLog: React.FC = () => {
             const info = describeEvent(ev);
             return (
               <motion.div
-                key={`${ev.timestamp}-${ev.type}-${i}`}
+                key={ev.timestamp + ev.type + (ev.payload?.node_id || ev.payload?.action || ev.payload?.tool || i)}
                 style={{ ...styles.entry, background: BGS[ev.type] || "rgba(255,255,255,0.03)" }}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}

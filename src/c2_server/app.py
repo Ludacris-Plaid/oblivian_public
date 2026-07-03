@@ -739,6 +739,19 @@ async def ai_providers():
     return {"providers": all_p, "preferred": preferred}
 
 
+@app.get("/api/ai/brain-state")
+async def ai_brain_state():
+    """Return AI brain runtime state."""
+    state = await ai_brain.memory.get_state_summary()
+    return {
+        "status": "success",
+        "running": ai_brain._running if hasattr(ai_brain, "_running") else False,
+        "mutation_mode": await ai_brain.memory.get("last_mutation_mode", "none"),
+        "decisions_made": state.get("decisions_made", 0),
+        "last_decision": state.get("last_decision"),
+    }
+
+
 @app.post("/api/ai/provider/select")
 async def ai_select_provider(data: dict = Body(...)):
     """Set preferred LLM provider."""

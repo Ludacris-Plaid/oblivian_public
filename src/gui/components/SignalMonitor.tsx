@@ -136,7 +136,7 @@ export default function SignalMonitor() {
         // Live metrics from real data
         setSignalQuality(Math.min(98, 65 + (nodeCount * 6)));
         setThreatLevel(Math.min(45, evList.filter(e => e.type === 'log_threat').length * 8 + Math.floor(Math.random() * 5)));
-        uptimeRef.current += 3;
+        uptimeRef.current += 1.5;
         setUptime(uptimeRef.current);
         setCmdRate(Math.max(1, evList.filter(e => e.type === 'command').length * 3 + evList.filter(e => e.type === 'ai_decision').length));
         packetCountRef.current += evList.length * 12 + 5;

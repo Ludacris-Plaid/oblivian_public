@@ -124,7 +124,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ data = {}, bytes_harveste
         <AnimatedCounter value={localStats.active_nodes} color="#00d4ff" />
         <span style={styles.statLabel}>Active</span>
         {localStats.active_nodes > 0 && (
-          <span style={styles.substat} color="#ff4757">
+          <span style={{ ...styles.substat, color: "#ff4757" }}>
             ({localStats.active_nodes} / {localStats.total_nodes})
           </span>
         )}
@@ -136,7 +136,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ data = {}, bytes_harveste
         <AnimatedCounter value={localStats.credentials} color="#ffd700" />
         <span style={styles.statLabel}>Credentials</span>
         {localStats.credentials > 0 && (
-          <span style={styles.substat} color="#00ff88">
+          <span style={{ ...styles.substat, color: "#00ff88" }}>
             Last: {formatTime(localStats.last_harvest)}
           </span>
         )}
@@ -147,7 +147,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ data = {}, bytes_harveste
       <motion.div style={styles.stat} whileHover={{ scale: 1.05 }}>
         <AnimatedCounter value={Math.round(localStats.bytes_harvested)} color="#a855f7" />
         <span style={styles.statLabel}>Bytes Harvested</span>
-        <span style={styles.substat} color="#a855f7">
+        <span style={{ ...styles.substat, color: "#a855f7" }}>
           {formatBytes(localStats.bytes_harvested)}
         </span>
       </motion.div>
@@ -158,7 +158,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ data = {}, bytes_harveste
         <AnimatedCounter value={localStats.total_nodes} color="#00ff88" />
         <span style={styles.statLabel}>Heartbeats</span>
         {localStats.last_heartbeat && (
-          <span style={styles.substat} color="#00ff88">
+          <span style={{ ...styles.substat, color: "#00ff88" }}>
             Last: {formatTime(localStats.last_heartbeat)}
           </span>
         )}

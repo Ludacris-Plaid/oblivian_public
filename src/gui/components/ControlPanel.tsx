@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import { API_URL } from "../config";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = API_URL;
 
 interface ControlPanelProps {
   sendMessage: (msg: string) => void;
