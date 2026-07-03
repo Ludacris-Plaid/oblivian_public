@@ -40,6 +40,7 @@ from src.c2_server.tor import tor_engine
 from src.c2_server.rotating_proxy import rotating_proxy_engine
 from src.c2_server.tool_engine import tool_engine, TOOLS
 from src.c2_server.spammer import spammer_engine
+from src.c2_server.osint import osint_engine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("c2")
@@ -2129,6 +2130,86 @@ async def spammer_delete_draft(data: dict = Body(...)):
     draft_id = data.get("draft_id", "")
     await spammer_engine.delete_draft(draft_id)
     return {"status": "success"}
+
+
+# ── OSINT ──────────────────────────────────────────────────────────────
+
+@app.get("/api/osint/status")
+async def osint_status():
+    return osint_engine.get_status()
+
+
+@app.get("/api/osint/output/{tool}")
+async def osint_output(tool: str):
+    return {"results": await osint_engine.get_tool_output(tool)}
+
+
+@app.post("/api/osint/theharvester")
+async def osint_theharvester(data: dict = Body(...)):
+    domain = data.get("domain", "")
+    sources = data.get("sources", "all")
+    result = await osint_engine.run_the_harvester(domain, sources)
+    await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "osint", "payload": {"tool": "theHarvester", "target": domain}})
+    return result
+
+
+@app.post("/api/osint/shodan")
+async def osint_shodan(data: dict = Body(...)):
+    query = data.get("query", "")
+    max_results = data.get("max_results", 10)
+    return await osint_engine.run_shodan(query, max_results)
+
+
+@app.post("/api/osint/google-dork")
+async def osint_google_dork(data: dict = Body(...)):
+    dork = data.get("dork", "")
+    return await osint_engine.run_google_dork(dork)
+
+
+@app.post("/api/osint/phoneinfoga")
+async def osint_phoneinfoga(data: dict = Body(...)):
+    phone = data.get("phone", "")
+    return await osint_engine.run_phoneinfoga(phone)
+
+
+@app.post("/api/osint/holehe")
+async def osint_holehe(data: dict = Body(...)):
+    email = data.get("email", "")
+    return await osint_engine.run_holehe(email)
+
+
+@app.post("/api/osint/instaloader")
+async def osint_instaloader(data: dict = Body(...)):
+    username = data.get("username", "")
+    return await osint_engine.run_instaloader(username)
+
+
+@app.post("/api/osint/gitdorker")
+async def osint_gitdorker(data: dict = Body(...)):
+    query = data.get("query", "")
+    target = data.get("target", "")
+    return await osint_engine.run_gitdorker(query, target)
+
+
+@app.post("/api/osint/sn0int")
+async def osint_sn0int(data: dict = Body(...)):
+    target = data.get("target", "")
+    module = data.get("module", "domain")
+    return await osint_engine.run_sn0int(target, module)
+
+
+@app.post("/api/osint/spiderfoot")
+async def osint_spiderfoot(data: dict = Body(...)):
+    target = data.get("target", "")
+    module = data.get("module", "all")
+    return await osint_engine.run_spiderfoot(target, module)
+
+
+@app.post("/api/osint/maltego")
+async def osint_maltego(data: dict = Body(...)):
+    entity = data.get("entity", "")
+    entity_type = data.get("entity_type", "domain")
+    return await osint_engine.run_maltego(entity, entity_type)
 
 
 # ── Serve frontend static files ─────────────────────────────────────────

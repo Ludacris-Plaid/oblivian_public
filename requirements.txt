@@ -8,3 +8,8 @@ cryptography
 websockets
 pyyaml
 python-multipart
+theHarvester
+shodan
+phoneinfoga
+holehe
+instaloader
