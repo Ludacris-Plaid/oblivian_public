@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useReducer } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "../config";
 
@@ -58,7 +58,10 @@ const AIChat: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [showProviderMenu, setShowProviderMenu] = useState(false);
   const [selectingProvider, setSelectingProvider] = useState(false);
-  const [expandedThinking, setExpandedThinking] = useState<Record<string, boolean>>({});
+  const [expandedThinking, toggleThinking] = useReducer(
+    (state: Record<string, boolean>, id: string) => ({ ...state, [id]: !state[id] }),
+    {} as Record<string, boolean>,
+  );
 
   const selectProvider = async (name: string) => {
     setSelectingProvider(true);
@@ -378,10 +381,7 @@ const scrollToBottom = () => {
                     <div style={{ marginBottom: 8 }}>
                       <div
                         onClick={() => {
-                          setExpandedThinking(prev => ({
-                            ...prev,
-                            [msg.id]: !prev[msg.id]
-                          }));
+                          toggleThinking(msg.id);
                         }}
                         style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
                       >
@@ -403,7 +403,10 @@ const scrollToBottom = () => {
                     </div>
                   )}
                   <div style={msg.role === "user" ? styles.userMsg : styles.aiMsg}>
-                    {renderContent(msg.content)}
+                    {(() => {
+                      try { return renderContent(msg.content); }
+                      catch { return <div style={{color:"#ff4757",fontSize:10}}>⚠ Content render error</div>; }
+                    })()}
                   </div>
                   <div style={{
                     fontSize: 9, marginTop: 6,
