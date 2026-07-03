@@ -410,7 +410,6 @@ const App: React.FC = () => {
             </div>
             <div style={{ color: '#00ff8877', fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: 'italic', letterSpacing: 2, fontWeight: 300 }}>Fear the ones who own the dark</div>
           </div>
-          </div>
           {/* Badges overlay top-right */}
           <div style={{ position: "absolute", top: 6, right: 6, zIndex: 5000, display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
             <SynthBadge connected={connected} activeNodes={stats.active_nodes} />
