@@ -58,7 +58,7 @@ const RotatingProxyPanel: React.FC = () => {
     pollIp();
     const id = setInterval(pollIp, 10000);
     return () => clearInterval(id);
-  }, []');
+  }, []);
 
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;

@@ -363,7 +363,7 @@ export default function GlitchClock() {
         })}
       </div>
     </div>
-  ');
+  );
 }
 
 const styles: Record<string, React.CSSProperties> = {

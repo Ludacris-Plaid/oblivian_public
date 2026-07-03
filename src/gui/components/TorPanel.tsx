@@ -217,7 +217,7 @@ const TorPanel: React.FC = () => {
         checked_at: new Date().toISOString(),
       });
     } catch (e) {
-      console.log('IP check failed:', e');
+      console.log('IP check failed:', e);
     }
   };
 

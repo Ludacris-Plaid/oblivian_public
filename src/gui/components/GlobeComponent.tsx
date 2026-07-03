@@ -466,7 +466,7 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
     fetchMarkers();
     const id = setInterval(fetchMarkers, 30000);
     return () => clearInterval(id);
-  }, []');
+  }, []);
 
   if (compact) {
     return (

@@ -58,7 +58,7 @@ const IPBadge: React.FC = () => {
     fetchIp();
     const id = setInterval(fetchIp, 10000);
     return () => clearInterval(id);
-  }, [fetchIp]');
+  }, [fetchIp]);
 
   // Countdown timer ref — removed, using backend lastRotationTs instead
 
