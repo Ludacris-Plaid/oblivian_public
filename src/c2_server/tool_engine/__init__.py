@@ -147,6 +147,9 @@ class ToolEngine:
             has_priv = any(a in ("--privileged", "--unprivileged") for a in cmd_args)
             if not has_priv:
                 cmd_args.insert(0, "--unprivileged")
+            # Strip root-required flags (-O, -A, -sC for OS/service detection needs root)
+            root_flags = {"-O", "-A", "-sC", "-sV", "-O"}
+            cmd_args = [a for a in cmd_args if a not in root_flags]
 
         cmd_parts = shlex.split(spec.command) + cmd_args
         tmt = timeout or spec.default_timeout

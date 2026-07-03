@@ -860,17 +860,17 @@ class AIBrain:
                 if target and target not in flags:
                     flags.append(target)
                 try:
-                    result = await tool_engine.run(
+                    tool_result = await tool_engine.run(
                         tool_name, flags, target=target,
                         triggered_by="ai", memory=self.memory,
                     )
                     executed.append(tool_name)
-                    if result.get("status") in ("completed", "failed"):
-                        summary = result.get("summary", result.get("status"))
-                        out = result.get("output", "")[:500]
-                        result["response"] = (result.get("response", "") + f"\n\n🔧 [{tool_name}] {summary}\n{out}").strip()
+                    if tool_result.get("status") in ("completed", "failed"):
+                        summary = tool_result.get("summary", tool_result.get("status"))
+                        out = tool_result.get("output", "")[:800]
+                        result["response"] = (result["response"] + f"\n\n🔧 [{tool_name}] {summary}\n{out}").strip()
                         # Track success/failure for learning
-                        label = "tool_success" if result.get("status") == "completed" else "tool_failure"
+                        label = "tool_success" if tool_result.get("status") == "completed" else "tool_failure"
                         await self.memory.record_decision({
                             "type": label,
                             "detail": f"{tool_name}: {summary[:200]}",

@@ -45,21 +45,26 @@ const ToolsPanel: React.FC = () => {
     fetch(API + '/api/tools/status').then(r => r.json()).then(d => { setTools(d.tools || []); setTotalRuns(d.total_runs || 0); }).catch(() => {});
   }, []);
 
+  // Track last seen execution ID for reliable new-entry detection
+  const lastSeenId = useRef(0);
+
   const pollHistory = async () => {
     try {
       const r = await fetch(API + '/api/tools/history?limit=30');
       const d = await r.json();
-      const newHistory = d.history || [];
-      const prevLen = history.length;
+      const newHistory: any[] = d.history || [];
       setHistory(newHistory);
       setTotalRuns(newHistory.length || 0);
-      // Auto-focus on AI-triggered tool executions
-      if (newHistory.length > prevLen) {
+
+      // Auto-focus on AI-triggered tool executions (new only)
+      const latestId = newHistory.length > 0 ? newHistory[newHistory.length - 1].id : 0;
+      if (latestId > lastSeenId.current) {
+        lastSeenId.current = latestId;
         const latest = newHistory[newHistory.length - 1];
-        if (latest && latest.triggered_by === 'ai') {
+        if (latest && latest.triggered_by === "ai") {
           setSelectedTool(latest.tool);
-          setToolArgs(prev => ({ ...prev, [latest.tool]: { target: latest.target || '', args: latest.args || '' } }));
-          setOutput(latest.output || latest.summary || '');
+          setToolArgs(prev => ({ ...prev, [latest.tool]: { target: latest.target || "", args: latest.args || "" } }));
+          setOutput(latest.output || latest.summary || "");
           setLastResult(latest);
         }
       }
