@@ -114,7 +114,7 @@ const IPBadge: React.FC = () => {
           ctx.fillRect(bx, by + (16 - bh), 4, bh);
         }
 
-        // ── Proxy rotation countdown with wave rings ────────────
+        // ── Proxy rotation countdown ────────────────────────
         const ringX = w - 22;
         const ringY = 12;
         const ringR = 10;
@@ -128,19 +128,17 @@ const IPBadge: React.FC = () => {
           const countdown = Math.max(0, Math.ceil(rotationInterval - (elapsed % rotationInterval)));
           const fraction = countdown / rotationInterval;
           const urgency = 1.0 - fraction;
+          const speed = 0.5 + urgency * 3.5;
 
-          // Wave rings — start below 10s, intensify as countdown drops
-          const waveActive = countdown <= 10;
-          const waveCount = Math.floor(urgency * 5) + (waveActive ? 1 : 0);
-          const waveAlphaBase = waveActive ? 0.12 + urgency * 0.25 : 0.03;
-          for (let wv = 0; wv < waveCount; wv++) {
-            const wavePhase = ((t * (1 + urgency * 6) + wv * 0.7) % 1);
-            const waveRadius = ringR + 2 + wavePhase * (15 + urgency * 20);
-            const waveAlpha = waveAlphaBase * (1 - wavePhase) * 0.8;
+          // ── Radiating rings (KillSwitch style) ──
+          for (let ring = 0; ring < 4; ring++) {
+            const phase = ((t * speed + ring * 1.2) % 3);
+            const radius = ringR + 3 + phase * 12;
+            const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * (0.3 + urgency * 0.7));
             ctx.beginPath();
-            ctx.arc(ringX, ringY, waveRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = col + (Math.floor(waveAlpha * 255).toString(16).padStart(2, '0'));
-            ctx.lineWidth = 1.2 + urgency * 1.5;
+            ctx.arc(ringX, ringY, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
+            ctx.lineWidth = 1.5 + urgency;
             ctx.stroke();
           }
 
@@ -167,16 +165,11 @@ const IPBadge: React.FC = () => {
           ctx.fillStyle = countdown <= 3 ? col : '#ddd';
           ctx.fillText(String(countdown), ringX, ringY + 1);
         } else if (connected) {
-          // Idle proxy — minimal dot, no yellow light
+          // Idle — subtle dot only, no yellow light
           ctx.beginPath();
-          ctx.arc(ringX, ringY, 3, 0, Math.PI * 2);
-          ctx.fillStyle = col + '55';
+          ctx.arc(ringX, ringY, 2, 0, Math.PI * 2);
+          ctx.fillStyle = col + '44';
           ctx.fill();
-          ctx.font = '6px "JetBrains Mono", monospace';
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = col + '33';
-          ctx.fillText('—', ringX, ringY + 1);
         }
       } else {
         ctx.strokeStyle = col + '60';
