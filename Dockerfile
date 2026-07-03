@@ -5,7 +5,7 @@ WORKDIR /app
 # Install system deps for hacking tools (available in Debian trixie)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nmap hydra sqlmap hashcat gobuster smbmap whatweb \
-    john curl git ruby \
+    john curl git ruby ruby-dev build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Install nikto from git
