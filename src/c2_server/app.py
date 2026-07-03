@@ -1869,6 +1869,7 @@ async def tools_cancel(execution_id: int):
 dist_dir = os.path.abspath("dist")
 if os.path.isdir(dist_dir):
     app.mount("/assets", StaticFiles(directory=os.path.join(dist_dir, "assets")), name="assets")
+    app.mount("/textures", StaticFiles(directory=os.path.join(dist_dir, "textures")), name="textures")
     from fastapi.responses import FileResponse
     from starlette.types import ASGIApp, Scope, Receive, Send
     @app.exception_handler(404)
