@@ -419,6 +419,18 @@ const App: React.FC = () => {
               }}
             >LOGOUT</button>
           </div>
+          {/* Logout button — fixed position */}
+          <div style={{ position: "absolute", bottom: 4, left: 14, zIndex: 5000 }}>
+            <button
+              onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
+              style={{
+                color: "#ff4757", fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
+                background: "rgba(255,71,87,0.12)", border: "1px solid rgba(255,71,87,0.3)",
+                borderRadius: 4, padding: "4px 12px", cursor: "pointer", fontWeight: 600,
+                letterSpacing: 1,
+              }}
+            >LOGOUT</button>
+          </div>
           {/* Badges overlay top-right */}
           <div style={{ position: "absolute", top: 6, right: 6, zIndex: 5000, display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
             <SynthBadge connected={connected} activeNodes={stats.active_nodes} />
