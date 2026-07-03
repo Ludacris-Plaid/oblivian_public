@@ -56,7 +56,7 @@ const AIChat: React.FC = () => {
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [collapsedThinking, setCollapsedThinking] = useState<Set<string>>(new Set());
+  const [collapsedIds, setCollapsedIds] = useState<Record<string, boolean>>({});
   const [showProviderMenu, setShowProviderMenu] = useState(false);
   const [selectingProvider, setSelectingProvider] = useState(false);
 
@@ -123,14 +123,14 @@ const AIChat: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  // Auto-collapse new reasoning windows only (never re-collapse expanded ones)
+  // Auto-collapse only new reasoning messages, never re-collapse expanded ones
   const seenThinkRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    setCollapsedThinking(prev => {
-      const next = new Set(prev);
+    setCollapsedIds(prev => {
+      const next = { ...prev };
       messages.forEach(m => {
         if (m.thinking && !seenThinkRef.current.has(m.id)) {
-          next.add(m.id);
+          next[m.id] = true;
           seenThinkRef.current.add(m.id);
         }
       });
@@ -391,30 +391,26 @@ const scrollToBottom = () => {
                     <div style={{ marginBottom: 8 }}>
                       <div
                         onClick={() => {
-                          setCollapsedThinking(prev => {
-                            const next = new Set(prev);
-                            if (next.has(msg.id)) next.delete(msg.id); else next.add(msg.id);
-                            return next;
-                          });
+                          setCollapsedIds(prev => ({ ...prev, [msg.id]: !prev[msg.id] }));
                         }}
                         style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
                       >
                         <span style={{
                           color: "#c084fc", fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace",
-                          display: "inline-block", transform: collapsedThinking.has(msg.id) ? "rotate(0deg)" : "rotate(90deg)",
+                          display: "inline-block", transform: collapsedIds[msg.id] ? "rotate(0deg)" : "rotate(90deg)",
                           transition: "transform 0.2s ease",
                         }}>▶</span>
                         <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>
                           CHATZ REASONING
                         </span>
                         <span style={{ color: "#666", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", marginLeft: "auto" }}>
-                          {collapsedThinking.has(msg.id) ? "show" : "hide"}
+                          {collapsedIds[msg.id] ? "show" : "hide"}
                         </span>
                       </div>
                       <div style={{
                         overflow: "hidden",
-                        maxHeight: collapsedThinking.has(msg.id) ? 0 : 250,
-                        opacity: collapsedThinking.has(msg.id) ? 0 : 1,
+                        maxHeight: collapsedIds[msg.id] ? 0 : 250,
+                        opacity: collapsedIds[msg.id] ? 0 : 1,
                         transition: "max-height 0.3s ease, opacity 0.2s ease",
                         background: "rgba(168,85,247,0.06)",
                         borderLeft: "3px solid rgba(168,85,247,0.4)",
@@ -425,7 +421,7 @@ const scrollToBottom = () => {
                         fontStyle: "italic",
                         lineHeight: 1.7,
                         whiteSpace: "pre-wrap",
-                        padding: collapsedThinking.has(msg.id) ? "0 12px" : "10px 12px",
+                        padding: collapsedIds[msg.id] ? "0 12px" : "10px 12px",
                         overflowY: "auto",
                       }}>
                         {msg.thinking}
