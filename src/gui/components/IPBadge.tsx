@@ -60,8 +60,6 @@ const IPBadge: React.FC = () => {
     return () => clearInterval(id);
   }, [fetchIp]);
 
-  // Countdown timer ref — removed, using backend lastRotationTs instead
-
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d"); if (!ctx) return;
@@ -75,134 +73,124 @@ const IPBadge: React.FC = () => {
       ctx.clearRect(0, 0, w, h);
       const col = ipStatus.color;
       const connected = ipStatus.connected;
+      const intensityMul = connected ? 1 : 1.5;
+      const speed = connected ? 1.2 : 2.5;
 
-      // Background
-      if (!connected) {
-        ctx.fillStyle = 'rgba(255,30,30,0.25)';
-        ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = `rgba(255,50,50,${0.25 + Math.sin(t * 3) * 0.15})`;
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.fillStyle = col + '18';
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      // Semi-thick outline border with glow
-      const borderPulse = connected ? 0.6 + Math.sin(t * 1.2) * 0.25 : 0.5 + Math.sin(t * 2.5) * 0.2;
-      ctx.shadowColor = col;
-      ctx.shadowBlur = connected ? 6 : 3;
-      ctx.strokeStyle = col + (Math.floor(borderPulse * 255).toString(16).padStart(2, '0'));
-      ctx.lineWidth = 3;
-      ctx.strokeRect(2, 2, w - 4, h - 4);
-      ctx.shadowBlur = 0;
-
-      // Connected animation
+      // ── Breathing background (KillSwitch style) ──
+      const breath = 0.04 + Math.sin(t * speed * 0.8) * 0.03;
+      const baseAlpha = connected ? breath : 0.15 + Math.sin(t * 3) * 0.1;
       if (connected) {
-        for (let i = 0; i < 5; i++) {
-          const phase = ((t * 2 + i * 0.8) % 1);
-          const x = 20 + phase * (w - 40);
-          const y = h / 2 - 8 + Math.sin(phase * Math.PI) * 8;
-          ctx.fillStyle = col + (Math.floor(Math.sin(phase * Math.PI) * 0.5 * 255).toString(16).padStart(2, '0'));
-          ctx.fillRect(x, y, 2, 4);
-        }
-        // Signal bars — brighter
-        for (let bar = 0; bar < 3; bar++) {
-          const bh = 8 + Math.sin(t * 2.5 + bar * 1.5) * 5 + 10;
-          const bx = w - 34 + bar * 7;
-          const by = h - 30;
-          ctx.fillStyle = col + 'bb';
-          ctx.fillRect(bx, by + (16 - bh), 4, bh);
-        }
-
-        // ── Proxy rotation countdown ────────────────────────
-        const ringX = w - 22;
-        const ringY = 12;
-        const ringR = 10;
-        const rotationInterval = ipStatus.rotationSec;
-        const lastRot = ipStatus.lastRotationTs;
-
-        if (connected && rotationInterval > 0) {
-          const nowMs = Date.now() / 1000;
-          const startRef = lastRot > 0 ? lastRot : (nowMs - 2);
-          const elapsed = nowMs - startRef;
-          const countdown = Math.max(0, Math.ceil(rotationInterval - (elapsed % rotationInterval)));
-          const fraction = countdown / rotationInterval;
-          const urgency = 1.0 - fraction;
-          const ringActive = countdown <= 10;
-
-          // ── Radiating rings (KillSwitch style) — only below 10s ──
-          if (ringActive) {
-            const ringSpeed = (1 - countdown / 10) * 4.5 + 0.2;  // slow at 10s, fast at 0s
-            for (let ring = 0; ring < 4; ring++) {
-              const phase = ((t * ringSpeed + ring * 1.2) % 3);
-              const radius = ringR + 3 + phase * 12;
-              const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * (0.2 + urgency * 0.8));
-              ctx.beginPath();
-              ctx.arc(ringX, ringY, radius, 0, Math.PI * 2);
-              ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
-              ctx.lineWidth = 1 + urgency * 2;
-              ctx.stroke();
-            }
-          }
-
-          // Background ring
-          ctx.beginPath();
-          ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
-          ctx.fillStyle = `${col}${Math.floor(15 + urgency * 30).toString(16).padStart(2, '0')}`;
-          ctx.fill();
-
-          // Progress arc
-          ctx.beginPath();
-          ctx.arc(ringX, ringY, ringR - 1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - fraction), false);
-          ctx.strokeStyle = col;
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = col;
-          ctx.shadowBlur = 2 + urgency * 8;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          // Countdown number
-          ctx.font = `bold ${9 + (countdown < 10 ? 1 : 0)}px "JetBrains Mono", monospace`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = countdown <= 3 ? col : '#ddd';
-          ctx.fillText(String(countdown), ringX, ringY + 1);
-        } else if (connected) {
-          // Idle — subtle dot only, no yellow light
-          ctx.beginPath();
-          ctx.arc(ringX, ringY, 2, 0, Math.PI * 2);
-          ctx.fillStyle = col + '44';
-          ctx.fill();
-        }
+        ctx.fillStyle = `${col}${Math.floor(baseAlpha * 255).toString(16).padStart(2, '0')}`;
       } else {
-        ctx.strokeStyle = col + '60';
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 4; i++) {
-          const sx = 20 + i * 30;
-          ctx.beginPath(); ctx.moveTo(sx, h - 20); ctx.lineTo(sx + 8, h - 12); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(sx + 8, h - 20); ctx.lineTo(sx, h - 12); ctx.stroke();
-        }
+        ctx.fillStyle = `rgba(255,30,30,${baseAlpha})`;
+      }
+      ctx.fillRect(0, 0, w, h);
+
+      // ── Radiating rings from center (KillSwitch style) ──
+      const cx = w / 2, cy = h / 2;
+      const maxR = Math.sqrt(cx * cx + cy * cy);
+      for (let ring = 0; ring < 4; ring++) {
+        const phase = ((t * speed + ring * 1.2) % 3);
+        const radius = 5 + phase * (maxR / 3);
+        const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * intensityMul);
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       }
 
-      // Flag — big and clean (no shadow — keeps emoji crisp)
+      // ── Border pulse (KillSwitch style) ──
+      const borderAlpha = Math.min(0.35, (0.12 + Math.sin(t * speed * 1.5) * 0.06) * intensityMul);
+      ctx.strokeStyle = col + (Math.floor(borderAlpha * 255).toString(16).padStart(2, '0'));
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(2, 2, w - 4, h - 4);
+
+      // ── Corner marks (KillSwitch style) ──
+      const cornerLen = 8;
+      const ca = Math.min(0.45, (0.2 + Math.sin(t * speed * 1.5) * 0.12) * intensityMul);
+      ctx.strokeStyle = col + (Math.floor(ca * 255).toString(16).padStart(2, '0'));
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(4, 4 + cornerLen); ctx.lineTo(4, 4); ctx.lineTo(4 + cornerLen, 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w - 4 - cornerLen, 4); ctx.lineTo(w - 4, 4); ctx.lineTo(w - 4, 4 + cornerLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(4, h - 4 - cornerLen); ctx.lineTo(4, h - 4); ctx.lineTo(4 + cornerLen, h - 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w - 4 - cornerLen, h - 4); ctx.lineTo(w - 4, h - 4); ctx.lineTo(w - 4, h - 4 - cornerLen); ctx.stroke();
+
+      // ── Flag ──
       ctx.font = '26px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
       ctx.shadowBlur = 0;
       ctx.fillText(ipStatus.flag || '🌐', 8, h / 2);
+
+      // ── IP text with glow ──
+      ctx.font = 'bold 12px "JetBrains Mono", monospace';
+      ctx.textAlign = "left";
+      ctx.fillStyle = connected ? '#f0f0f0' : col + 'ee';
+      ctx.shadowColor = col;
+      ctx.shadowBlur = connected ? 4 + Math.sin(t * speed) * 2 : 0;
+      ctx.fillText(ipStatus.ip, 48, h / 2 - 6);
       ctx.shadowBlur = 0;
 
-      // IP — bright white with color shadow
-      ctx.font = 'bold 12px "JetBrains Mono", monospace';
-      ctx.fillStyle = connected ? '#f0f0f0' : col + 'ee';
-      ctx.shadowColor = col; ctx.shadowBlur = connected ? 3 : 0;
-      ctx.fillText(ipStatus.ip, 48, h / 2 - 6);
-
-      // Label + speed — brighter
+      // ── Label ──
       ctx.font = '8px "JetBrains Mono", monospace';
       ctx.fillStyle = connected ? col + 'cc' : col + 'cc';
       ctx.fillText(ipStatus.label, 48, h / 2 + 14);
       if (ipStatus.speed && connected) {
         ctx.fillStyle = col + '99';
         ctx.fillText(ipStatus.speed, 48 + ctx.measureText(ipStatus.label + '  ').width, h / 2 + 14);
+      }
+
+      // ── Proxy rotation countdown ring ──
+      const ringX = w - 22;
+      const ringY = 12;
+      const ringR = 10;
+      const rotationInterval = ipStatus.rotationSec;
+      const lastRot = ipStatus.lastRotationTs;
+
+      if (connected && rotationInterval > 0) {
+        const nowMs = Date.now() / 1000;
+        const startRef = lastRot > 0 ? lastRot : (nowMs - 2);
+        const elapsed = nowMs - startRef;
+        const countdown = Math.max(0, Math.ceil(rotationInterval - (elapsed % rotationInterval)));
+        const fraction = countdown / rotationInterval;
+        const urgency = 1.0 - fraction;
+
+        if (countdown <= 10) {
+          const ringSpeed = (1 - countdown / 10) * 4.5 + 0.2;
+          for (let ring = 0; ring < 4; ring++) {
+            const phase = ((t * ringSpeed + ring * 1.2) % 3);
+            const radius = ringR + 3 + phase * 12;
+            const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * (0.2 + urgency * 0.8));
+            ctx.beginPath();
+            ctx.arc(ringX, ringY, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
+            ctx.lineWidth = 1 + urgency * 2;
+            ctx.stroke();
+          }
+        }
+
+        ctx.beginPath();
+        ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
+        ctx.fillStyle = `${col}${Math.floor(15 + urgency * 30).toString(16).padStart(2, '0')}`;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(ringX, ringY, ringR - 1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - fraction), false);
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 2 + urgency * 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.font = `bold ${9 + (countdown < 10 ? 1 : 0)}px "JetBrains Mono", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = countdown <= 3 ? col : '#ddd';
+        ctx.fillText(String(countdown), ringX, ringY + 1);
+      } else if (connected) {
+        ctx.beginPath();
+        ctx.arc(ringX, ringY, 2, 0, Math.PI * 2);
+        ctx.fillStyle = col + '44';
+        ctx.fill();
       }
 
       requestAnimationFrame(draw);
@@ -213,7 +201,8 @@ const IPBadge: React.FC = () => {
 
   return (
     <canvas ref={canvasRef} onClick={fetchIp}
-      style={{ width: 260, height: 72, borderRadius: 8, cursor: "pointer" }} />
+      style={{ width: 260, height: 72, borderRadius: 8, cursor: "pointer", background: "rgba(6,6,14,0.4)" }}
+    />
   );
 };
 
