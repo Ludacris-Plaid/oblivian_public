@@ -1,8 +1,16 @@
+# Frontend build stage
+FROM node:23-alpine AS frontend
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npx vite build
+
+# Backend stage
 FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install system deps for hacking tools (available in Debian trixie)
+# Install system deps for hacking tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nmap hydra sqlmap hashcat gobuster smbmap whatweb \
     john curl git ruby ruby-dev build-essential \
@@ -29,6 +37,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source
 COPY . .
+
+# Copy frontend build
+COPY --from=frontend /build/dist /app/dist
 
 # Expose port
 EXPOSE 8000

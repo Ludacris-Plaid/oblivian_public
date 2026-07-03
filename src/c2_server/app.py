@@ -12,6 +12,7 @@ Credentials and evasion data flow through Redis to the dashboard.
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import asyncio
 import json
@@ -1859,6 +1860,21 @@ async def tools_result(execution_id: int):
 async def tools_cancel(execution_id: int):
     ok = await tool_engine.cancel(execution_id)
     return {"status": "cancelled" if ok else "not_found"}
+
+
+# ── Serve frontend static files ─────────────────────────────────────────
+dist_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dist")
+if os.path.isdir(dist_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(dist_dir, "assets")), name="assets")
+    from fastapi.responses import FileResponse
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("ws/") or full_path.startswith("openapi") or full_path == "health":
+            return {"detail": "Not Found"}
+        index = os.path.join(dist_dir, "index.html")
+        if os.path.isfile(index):
+            return FileResponse(index)
+        return {"detail": "Not Found"}
 
 
 # ── Startup ───────────────────────────────────────────────────────────────
