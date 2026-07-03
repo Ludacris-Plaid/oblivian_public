@@ -541,13 +541,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   body: {
     display: 'flex',
-    height: 360,
+    height: 400,
   },
   chatPanel: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    borderRight: '1px solid rgba(255, 255, 255, 0.03)',
     minWidth: 0,
   },
   messagesContainer: {
@@ -561,7 +560,7 @@ const styles: Record<string, React.CSSProperties> = {
   message: {
     padding: '10px 14px',
     borderRadius: 10,
-    maxWidth: '80%',
+    maxWidth: '92%',
     color: '#ccc',
   },
   userMsg: {
@@ -618,7 +617,7 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
   },
   sidebar: {
-    width: 200,
+    width: 170,
     flexShrink: 0,
     padding: '14px 14px 12px',
     display: 'flex',
