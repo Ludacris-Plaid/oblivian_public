@@ -2164,13 +2164,12 @@ async def ip_lookup(fields: str = "query", request: Request = None):
             if val:
                 client_ip = val.split(",")[0].strip()
                 break
-    params = {"fields": fields}
-    if client_ip and client_ip not in ("127.0.0.1", "::1", "localhost", ""):
-        params["query"] = client_ip
+    # Use path-based ip-api format: /json/{ip}?fields=... (query param doesn't work reliably)
+    target = client_ip if (client_ip and client_ip not in ("127.0.0.1", "::1", "localhost", "")) else ""
+    url = f"http://ip-api.com/json/{target}" if target else "http://ip-api.com/json/"
     async with httpx.AsyncClient() as client:
-        r = await client.get("http://ip-api.com/json/", params=params, timeout=10)
+        r = await client.get(url, params={"fields": fields}, timeout=10)
         result = r.json()
-        # Debug: attach what the server saw
         result["_debug_client_ip"] = client_ip
         result["_debug_forwarded_for"] = request.headers.get("x-forwarded-for", "") if request else ""
         return result
