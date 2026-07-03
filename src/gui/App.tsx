@@ -410,17 +410,6 @@ const App: React.FC = () => {
             </div>
             <div style={{ color: '#00ff8877', fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: 'italic', letterSpacing: 2, fontWeight: 300 }}>Fear the ones who own the dark</div>
           </div>
-          {/* Logout button — bottom-left corner of header */}
-          <div style={{ position: "absolute", bottom: 12, left: 14, zIndex: 9000 }}>
-            <button
-              onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
-              style={{
-                color: "#ff4757", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
-                background: "rgba(255,71,87,0.12)", border: "1px solid rgba(255,71,87,0.35)",
-                borderRadius: 4, padding: "7px 18px", cursor: "pointer", fontWeight: 700,
-                letterSpacing: 1.5,
-              }}
-            >LOGOUT</button>
           </div>
           {/* Badges overlay top-right */}
           <div style={{ position: "absolute", top: 6, right: 6, zIndex: 5000, display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
@@ -454,6 +443,23 @@ const App: React.FC = () => {
         <div style={styles.clockRow}>
           <GlitchClock />
         </div>
+        {/* Logout — glassmorphism, bottom of header */}
+        <motion.button
+          onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
+          whileHover={{ scale: 1.04, borderColor: "rgba(255,71,87,0.5)" }}
+          whileTap={{ scale: 0.96 }}
+          style={{
+            position: "absolute", bottom: 12, left: 16, zIndex: 9000,
+            color: "#ff4757", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
+            background: "rgba(255,71,87,0.08)", backdropFilter: "blur(8px)",
+            border: "1px solid rgba(255,71,87,0.25)",
+            borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontWeight: 700,
+            letterSpacing: 1.5, transition: "all 0.2s",
+          }}
+          initial={{ opacity: 0.7 }}
+          animate={{ opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 3, repeat: Infinity }}
+        >LOGOUT</motion.button>
       </motion.header>
 
       {/* ── Tab Navigation ─────────────────────── */}
