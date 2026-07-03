@@ -29,6 +29,7 @@ import SpammerPanel from "./components/SpammerPanel";
 import LoginScreen from "./components/LoginScreen";
 import MemoryPanel from "./components/MemoryPanel";
 import ToolsPanel from "./components/ToolsPanel";
+import BossMode from "./components/BossMode";
 import IPBadge from "./components/IPBadge";
 import { API_URL } from "./config";
 
@@ -321,6 +322,7 @@ const App: React.FC = () => {
   const scrollLocked = useRef(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [burnClicks, setBurnClicks] = useState(0);
+  const [bossMode, setBossMode] = useState(false);
   const [showBurnPin, setShowBurnPin] = useState(false);
   const [burnPin, setBurnPin] = useState("");
   const [burning, setBurning] = useState(false);
@@ -350,6 +352,15 @@ const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     }
   }, [ready]);
+
+  // Boss mode keyboard shortcut: backtick ` toggles
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "`" || e.key === "~") setBossMode(prev => !prev);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Show login gate if not authenticated
   if (!loggedIn) {
@@ -384,6 +395,8 @@ const App: React.FC = () => {
   return (
     <div style={styles.page}>
       <ParticleField />
+
+      {bossMode && <BossMode onExit={() => setBossMode(false)} />}
 
       <AnimatePresence>
         {usingMock && <OfflineBanner onRetry={reconnect} />}
@@ -442,23 +455,39 @@ const App: React.FC = () => {
         <div style={styles.clockRow}>
           <GlitchClock />
         </div>
-        {/* Logout — glassmorphism, bottom of header */}
-        <motion.button
-          onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
-          whileHover={{ scale: 1.04, borderColor: "rgba(255,71,87,0.5)" }}
-          whileTap={{ scale: 0.96 }}
-          style={{
-            position: "absolute", bottom: 0, left: 12, zIndex: 9000,
-            color: "#ff4757", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
-            background: "rgba(255,71,87,0.08)", backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255,71,87,0.25)",
-            borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontWeight: 700,
-            letterSpacing: 1.5, transition: "all 0.2s",
-          }}
-          initial={{ opacity: 0.7 }}
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >LOGOUT</motion.button>
+        {/* Bottom-left buttons — logout + boss mode */}
+        <div style={{ position: "absolute", bottom: 0, left: 12, zIndex: 9000, display: "flex", gap: 6 }}>
+          <motion.button
+            onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
+            whileHover={{ scale: 1.04, borderColor: "rgba(255,71,87,0.5)" }}
+            whileTap={{ scale: 0.96 }}
+            style={{
+              color: "#ff4757", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
+              background: "rgba(255,71,87,0.08)", backdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,71,87,0.25)",
+              borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontWeight: 700,
+              letterSpacing: 1.5, transition: "all 0.2s",
+            }}
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >LOGOUT</motion.button>
+          <motion.button
+            onClick={() => setBossMode(prev => !prev)}
+            whileHover={{ scale: 1.04, borderColor: "rgba(37,99,235,0.5)" }}
+            whileTap={{ scale: 0.96 }}
+            style={{
+              color: "#2563eb", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
+              background: "rgba(37,99,235,0.08)", backdropFilter: "blur(8px)",
+              border: "1px solid rgba(37,99,235,0.25)",
+              borderRadius: 6, padding: "7px 18px", cursor: "pointer", fontWeight: 700,
+              letterSpacing: 1.5, transition: "all 0.2s",
+            }}
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >BOSS MODE</motion.button>
+        </div>
       </motion.header>
 
       {/* ── Tab Navigation ─────────────────────── */}
