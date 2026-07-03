@@ -399,7 +399,7 @@ const scrollToBottom = () => {
                             return next;
                           });
                         }}
-                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: collapsedThinking.has(msg.id) ? 6 : 6 }}
+                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
                       >
                         <motion.span
                           animate={{ rotate: collapsedThinking.has(msg.id) ? 0 : 90 }}
@@ -412,13 +412,14 @@ const scrollToBottom = () => {
                           {collapsedThinking.has(msg.id) ? "show" : "hide"}
                         </span>
                       </div>
-                      <AnimatePresence mode="wait">
+                      <AnimatePresence>
                         {!collapsedThinking.has(msg.id) && (
                           <motion.div
                             key={`think-${msg.id}`}
-                            initial={{ height: 0, opacity: 0, padding: 0 }}
-                            animate={{ height: "auto", opacity: 1, padding: "10px 12px" }}
-                            exit={{ height: 0, opacity: 0, padding: 0 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                             style={{
                               background: "rgba(168,85,247,0.06)",
                               borderLeft: "3px solid rgba(168,85,247,0.4)",
@@ -431,7 +432,7 @@ const scrollToBottom = () => {
                               whiteSpace: "pre-wrap",
                               maxHeight: 250,
                               overflowY: "auto",
-                              marginTop: 0,
+                              padding: "10px 12px",
                             }}
                           >
                             {msg.thinking}
