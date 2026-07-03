@@ -233,16 +233,8 @@ const scrollToBottom = () => {
       const result = await response.json();
       let rawContent = result.response || "Processing...";
 
-      const { thinking: thinkText, clean: cleanContent } = extractThinking(rawContent);
-            } else {
-              respLines.push(line);
-            }
-          }
-          thinkText = thinkLines.join("\n").trim();
-          if (thinkText.startsWith("Thinking Process:")) thinkText = thinkText.replace(/^Thinking Process:\s*/i, "").trim();
-          cleanContent = (rawContent.slice(0, tpIdx) + "\n" + respLines.join("\n")).trim();
-        }
-      }
+      const { thinking: thinkText, clean: cleanRaw } = extractThinking(rawContent);
+      let cleanContent = cleanRaw;
 
       if (result.executed_actions && result.executed_actions.length > 0) {
         cleanContent += `\n\n✓ Actions executed: ${result.executed_actions.join(", ")}`;
