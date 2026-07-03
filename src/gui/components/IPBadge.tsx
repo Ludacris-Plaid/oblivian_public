@@ -18,7 +18,7 @@ const IPBadge: React.FC = () => {
   const fetchIp = useCallback(async () => {
     try {
       const [ipRes, torRes, proxyRes] = await Promise.all([
-        fetch('http://ip-api.com/json/?fields=query,city,country,countryCode,isp'),
+        fetch('https://ip-api.com/json/?fields=query,city,country,countryCode,isp'),
         fetch(API_URL + '/api/tor/check-ip'),
         fetch(API_URL + '/api/rotating-proxy/status'),
       ]);

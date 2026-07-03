@@ -170,7 +170,7 @@ function getBrowserTzInfo(): TzInfo | null {
 // Free IP geolocation — detects your PHYSICAL location regardless of system clock
 async function getLocationTzInfo(): Promise<TzInfo | null> {
   try {
-    const r = await fetch('http://ip-api.com/json/?fields=timezone,city,country');
+    const r = await fetch('https://ip-api.com/json/?fields=timezone,city,country');
     const d = await r.json();
     if (d.timezone && TZ_INFO[d.timezone]) {
       console.log('[GlitchClock] IP geolocation:', d.timezone, '→', TZ_INFO[d.timezone], `(${d.city}, ${d.country})`);
