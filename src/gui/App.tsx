@@ -486,7 +486,12 @@ const App: React.FC = () => {
             initial={{ opacity: 0.7 }}
             animate={{ opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 3, repeat: Infinity }}
-          >BOSS MODE</motion.button>
+          >BOSS MODE <span style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              fontSize: 9, fontWeight: 600, color: "#2563eb", background: "rgba(37,99,235,0.15)",
+              borderRadius: 3, padding: "0 5px", marginLeft: 4, height: 16,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>`</span></motion.button>
         </div>
       </motion.header>
 
