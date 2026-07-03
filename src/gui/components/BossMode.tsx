@@ -52,31 +52,30 @@ const BossMode: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(w - 10, y); ctx.stroke();
       }
 
-      // Bars with animation
+      // Bars with animation — wider, more spaced, no legend overlap
       QTR_DATA.forEach((d, i) => {
-        const bw = 50;
-        const gap = 20;
-        const x = 40 + i * (bw + gap);
+        const bw = 55;
+        const gap = 28;
+        const x = 30 + i * (bw + gap);
         const bh = ((d.revenue / MAX_BAR) * (h - 60)) * Math.min(1, t * 0.5);
         const by = h - 30 - bh;
 
-        // Revenue bar
+        // Revenue bar — thicker with stronger glow
         const grad = ctx.createLinearGradient(x, by, x, h - 30);
-        grad.addColorStop(0, "#2563eb");
+        grad.addColorStop(0, "#3b82f6");
         grad.addColorStop(1, "#1d4ed8");
         ctx.fillStyle = grad;
-        ctx.shadowColor = "#2563eb";
-        ctx.shadowBlur = 4;
+        ctx.shadowColor = "#3b82f6";
+        ctx.shadowBlur = 6;
         ctx.fillRect(x, by, bw / 2 - 2, bh);
         ctx.shadowBlur = 0;
 
-        // Expenses bar
-        const exw = bw / 2 - 2;
+        // Expenses bar — cleaner grey
         const exx = x + bw / 2 + 2;
         const exh = ((d.expenses / MAX_BAR) * (h - 60)) * Math.min(1, t * 0.5);
         const exy = h - 30 - exh;
-        ctx.fillStyle = "#64748b";
-        ctx.fillRect(exx, exy, exw, exh);
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(exx, exy, bw / 2 - 2, exh);
 
         // Label
         ctx.fillStyle = "#94a3b8";
@@ -85,17 +84,17 @@ const BossMode: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         ctx.fillText(d.label, x + bw / 2, h - 12);
       });
 
-      // Legend
-      ctx.fillStyle = "#2563eb";
-      ctx.fillRect(w - 110, 10, 8, 8);
+      // Legend — moved to top-left to avoid Q4 overlap
+      ctx.fillStyle = "#3b82f6";
+      ctx.fillRect(10, 10, 8, 8);
       ctx.fillStyle = "#94a3b8";
       ctx.font = "9px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("Revenue", w - 98, 18);
-      ctx.fillStyle = "#64748b";
-      ctx.fillRect(w - 110, 24, 8, 8);
+      ctx.fillText("Revenue", 22, 18);
+      ctx.fillStyle = "#475569";
+      ctx.fillRect(10, 24, 8, 8);
       ctx.fillStyle = "#94a3b8";
-      ctx.fillText("Expenses", w - 98, 32);
+      ctx.fillText("Expenses", 22, 32);
 
       requestAnimationFrame(draw);
     };
