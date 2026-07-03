@@ -105,8 +105,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           <span style={{ fontSize: 24, filter: "drop-shadow(0 0 8px rgba(0,255,136,0.4))" }}>☠️</span>
         </div>
 
-        <h1 style={{ margin: "0 0 6px", color: "#00ff88", fontSize: 24, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textShadow: "0 0 16px rgba(0,255,136,0.3)" }}>VIRUS C2</h1>
-        <p style={{ margin: "0 0 28px", color: "#334", fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 2, textTransform: "uppercase" }}>Command & Control</p>
+        <h1 style={{ margin: "0 0 4px", color: "#00ff88", fontSize: 28, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textShadow: "0 0 16px rgba(0,255,136,0.3)", letterSpacing: 2 }}>OBLIVIAN</h1>
+        <p style={{ margin: "0 0 4px", color: "#00ff8877", fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: "italic", letterSpacing: 1.5, fontWeight: 300 }}>Fear the ones who own the dark</p>
+        <p style={{ margin: "0 0 28px", color: "#334", fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 3, textTransform: "uppercase" }}>Command & Control</p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <input
