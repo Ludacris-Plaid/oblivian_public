@@ -283,17 +283,24 @@ const TorPanel: React.FC = () => {
             </div>
             <div style={{ padding: "14px", background: ipInfo.torified ? "rgba(168,85,247,0.06)" : "rgba(0,255,136,0.06)", borderRadius: 10, border: `1px solid ${ipInfo.torified ? "rgba(168,85,247,0.15)" : "rgba(0,255,136,0.15)"}` }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ color: "#666", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: "'JetBrains Mono', monospace" }}>{ipInfo.torified ? 'TOR Exit IP (Masked)' : 'Connection'}</span>
+                <span style={{ color: "#666", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: "'JetBrains Mono', monospace" }}>{ipInfo.torified ? 'Circuit Path (Guard → Middle → Exit)' : 'Connection'}</span>
                 <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ color: ipInfo.torified ? "#a855f7" : "#00ff88", fontSize: 9, fontFamily: "'JetBrains Mono', monospace" }}>
                   {ipInfo.torified ? 'TOR PROTECTED' : 'CLEAR'}
                 </motion.span>
               </div>
               <div style={{ color: ipInfo.torified ? "#a855f7" : "#00ff88", fontSize: 18, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1 }}>{ipInfo.torified ? ipInfo.exit_ip : ipInfo.real_ip}</div>
-              <div style={{ display: "flex", gap: 5, marginTop: 6, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
                 {ipInfo.torified ? (
                   <>
-                    <span style={{ color: "#a855f7", fontSize: 16, lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", background: "rgba(168,85,247,0.1)", borderRadius: 4 }}>{COUNTRY_FLAGS[ipInfo.exit_country] || '🏳️'}</span>
-                    <span style={{ color: "#a855f7", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", padding: "2px 8px", background: "rgba(168,85,247,0.1)", borderRadius: 4 }}>{ipInfo.latency_ms}ms</span>
+                    {(status.circuit_nodes || []).map((node: any, i: number) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "rgba(168,85,247,0.08)", borderRadius: 6, border: "1px solid rgba(168,85,247,0.15)" }}>
+                        <span style={{ fontSize: 16, lineHeight: 1 }}>{COUNTRY_FLAGS[node.country] || '🏳️'}</span>
+                        <span style={{ color: "#c084fc", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, textTransform: "uppercase" }}>{node.role}</span>
+                        <span style={{ color: "#888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>{node.country}</span>
+                        {i < 2 && <span style={{ color: "#555", fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>→</span>}
+                      </div>
+                    ))}
+                    <span style={{ color: "#666", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", padding: "4px 10px", background: "rgba(168,85,247,0.08)", borderRadius: 6, border: "1px solid rgba(168,85,247,0.15)" }}>{ipInfo.latency_ms}ms</span>
                   </>
                 ) : (
                   <span style={{ color: "#555", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", padding: "2px 8px", background: "rgba(255,255,255,0.03)", borderRadius: 4 }}>Not torified</span>
