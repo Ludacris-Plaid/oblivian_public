@@ -10,6 +10,43 @@ interface Message {
   timestamp: string;
 }
 
+function extractThinking(raw: string): { thinking: string; clean: string } {
+  let thinking = "";
+  let clean = raw;
+  const xmlThink = raw.match(/<think>([\s\S]*?)<\/think>/i) || raw.match(/<\s*thinking\s*>([\s\S]*?)<\s*\/\s*thinking\s*>/i);
+  if (xmlThink) {
+    thinking = xmlThink[1].trim();
+    clean = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<\s*thinking\s*>[\s\S]*?<\s*\/\s*thinking\s*>/gi, "").trim();
+  } else {
+    const tpIdx = raw.search(/Thinking Process:/i);
+    if (tpIdx >= 0) {
+      const afterTp = raw.slice(tpIdx);
+      const lines = afterTp.split("\n");
+      let thinkLines: string[] = [];
+      let respLines: string[] = [];
+      let foundResponse = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!foundResponse) {
+          const trimmed = line.trim();
+          if (i > 2 && trimmed.length > 0 && !trimmed.match(/^(\d+\.|\*|\-|#)/) && trimmed.match(/^[A-Z]/)) {
+            foundResponse = true;
+            respLines.push(line);
+          } else {
+            thinkLines.push(line);
+          }
+        } else {
+          respLines.push(line);
+        }
+      }
+      thinking = thinkLines.join("\n").trim();
+      clean = respLines.join("\n").trim();
+      if (thinking.startsWith("Thinking Process:")) thinking = thinking.replace(/^Thinking Process:\s*/i, "").trim();
+    }
+  }
+  return { thinking, clean };
+}
+
 const AIChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -70,12 +107,20 @@ const AIChat: React.FC = () => {
       .then(r => r.json())
       .then(d => {
         if (d.conversations && d.conversations.length > 0) {
-          const historyMsgs: Message[] = d.conversations.map((c: any, i: number) => ({
-            id: `history-${i}`,
-            role: c.role as "ai" | "user",
-            content: c.content,
-            timestamp: c.timestamp || new Date().toISOString(),
-          }));
+          const historyMsgs: Message[] = d.conversations.map((c: any, i: number) => {
+            const msg: Message = {
+              id: `history-${i}`,
+              role: c.role as "ai" | "user",
+              content: c.content,
+              timestamp: c.timestamp || new Date().toISOString(),
+            };
+            if (c.role === "ai") {
+              const { thinking, clean } = extractThinking(c.content);
+              msg.thinking = thinking || undefined;
+              msg.content = clean;
+            }
+            return msg;
+          });
           setMessages(prev => {
             const existingIds = new Set(prev.map(m => m.id));
             const newMsgs = historyMsgs.filter((m: Message) => !existingIds.has(m.id));
@@ -187,32 +232,8 @@ const scrollToBottom = () => {
 
       const result = await response.json();
       let rawContent = result.response || "Processing...";
-      let thinkText = "";
-      let cleanContent = rawContent;
 
-      // Extract thinking — handles both XML <think> and plain "Thinking Process:" text
-      const xmlThink = rawContent.match(/<think>([\s\S]*?)<\/think>/i) || rawContent.match(/<\s*thinking\s*>([\s\S]*?)<\s*\/\s*thinking\s*>/i);
-      if (xmlThink) {
-        thinkText = xmlThink[1].trim();
-        cleanContent = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<\s*thinking\s*>[\s\S]*?<\s*\/\s*thinking\s*>/gi, "").trim();
-      } else {
-        const tpIdx = rawContent.search(/Thinking Process:/i);
-        if (tpIdx >= 0) {
-          const afterTp = rawContent.slice(tpIdx);
-          const lines = afterTp.split("\n");
-          let thinkLines: string[] = [];
-          let respLines: string[] = [];
-          let foundResponse = false;
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (!foundResponse) {
-              const trimmed = line.trim();
-              if (i > 2 && trimmed.length > 0 && !trimmed.match(/^(\d+\.|\*|\-|#)/) && trimmed.match(/^[A-Z]/)) {
-                foundResponse = true;
-                respLines.push(line);
-              } else {
-                thinkLines.push(line);
-              }
+      const { thinking: thinkText, clean: cleanContent } = extractThinking(rawContent);
             } else {
               respLines.push(line);
             }
@@ -272,16 +293,9 @@ const scrollToBottom = () => {
       if (result.status === "success") {
         const actionsList = (result.actions || []).map((a: string) => `  → ${a}`).join("\n");
         let notes = result.notes || "";
-        const xmlThink = notes.match(/<think>([\s\S]*?)<\/think>/i) || notes.match(/<\s*thinking\s*>([\s\S]*?)<\s*\/\s*thinking\s*>/i);
-        const textThink = notes.match(/Thinking Process:\s*\n+([\s\S]*?)(?=\n\n(?:[A-Za-z]|[^\d]|Hey|Alright|OK|Got|Here|Boss|Sweet|I'll|Let|The|You|What|This|That|So|Well|Alrighty))/i);
-
-        if (xmlThink) {
-          thinkText = xmlThink[1].trim();
-          notes = notes.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<\s*thinking\s*>[\s\S]*?<\s*\/\s*thinking\s*>/gi, "").trim();
-        } else if (textThink) {
-          thinkText = textThink[1].trim();
-          notes = notes.replace(textThink[0], "").trim();
-        }
+        const { thinking, clean } = extractThinking(notes);
+        thinkText = thinking;
+        notes = clean;
         content = `Mutation Executed [${result.mutation_id}]\n${actionsList}\n\nScore: ${result.score}/100 | Confidence: ${result.confidence}%\n\n${notes}`;
       } else {
         content = `[Error] ${result.notes || "Unknown error"}`;
