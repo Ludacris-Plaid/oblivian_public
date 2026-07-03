@@ -1693,6 +1693,7 @@ async def rotating_proxy_start(data: dict = Body(...)):
     speed = data.get("speed", 5)
     rotating_proxy_engine.active = True
     rotating_proxy_engine.set_rotation_speed(speed)
+    rotating_proxy_engine.stats["last_rotation_ts"] = time.time()  # start countdown immediately
 
     # Cancel existing rotation task if running
     if _rotating_proxy_task and not _rotating_proxy_task.done():

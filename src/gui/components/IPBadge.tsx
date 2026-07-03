@@ -113,14 +113,60 @@ const IPBadge: React.FC = () => {
           ctx.fillStyle = col + 'bb';
           ctx.fillRect(bx, by + (16 - bh), 4, bh);
         }
-        // Glow indicator dot
-        ctx.beginPath();
-        ctx.arc(w - 22, 10, 4, 0, Math.PI * 2);
-        ctx.fillStyle = col;
-        ctx.shadowColor = col;
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
+
+        // ── Proxy rotation countdown ────────────────────────
+        const rotationInterval = ipStatus.rotationSec;
+        const lastRot = ipStatus.lastRotationTs;
+        if (connected && rotationInterval > 0) {
+          const nowMs = Date.now() / 1000;
+          const startRef = lastRot > 0 ? lastRot : (nowMs - 2); // if no rotation yet, start from ~2s ago
+          const elapsed = nowMs - startRef;
+          const countdown = Math.max(0, Math.ceil(rotationInterval - (elapsed % rotationInterval)));
+          const fraction = countdown / rotationInterval;       // 1.0 → 0.0
+          const urgency = 1.0 - fraction;                       // 0.0 → 1.0
+
+          // Pulse: gentle at high countdowns, frantic near 0
+          const pulseSpeed = 2 + urgency * 8;
+          const pulseDepth = 0.15 + urgency * 0.6;
+          const em = 0.5 + Math.sin(t * pulseSpeed) * pulseDepth;
+
+          // Background ring behind the countdown
+          const ringX = w - 22;
+          const ringY = 12;
+          const ringR = 10;
+
+          // Outer ring pulse
+          ctx.beginPath();
+          ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
+          ctx.fillStyle = `${col}${Math.floor(15 + urgency * 30).toString(16).padStart(2, '0')}`;
+          ctx.fill();
+
+          // Inner filled ring proportional to countdown progress
+          ctx.beginPath();
+          ctx.arc(ringX, ringY, ringR - 1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - fraction), false);
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = col;
+          ctx.shadowBlur = 2 + urgency * 8;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Countdown number
+          ctx.font = `bold ${9 + (countdown < 10 ? 1 : 0)}px "JetBrains Mono", monospace`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = countdown <= 3 ? col : '#ddd';
+          ctx.fillText(String(countdown), ringX, ringY + 1);
+        } else {
+          // Simple pulse dot when no rotation
+          ctx.beginPath();
+          ctx.arc(w - 22, 12, 3, 0, Math.PI * 2);
+          ctx.fillStyle = connected ? col : '#ff4757';
+          ctx.shadowColor = connected ? col : '#ff4757';
+          ctx.shadowBlur = connected ? 4 : 2;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
       } else {
         ctx.strokeStyle = col + '60';
         ctx.lineWidth = 2;
@@ -150,21 +196,6 @@ const IPBadge: React.FC = () => {
       if (ipStatus.speed && connected) {
         ctx.fillStyle = col + '99';
         ctx.fillText(ipStatus.speed, 36 + ctx.measureText(ipStatus.label + '  ').width, h / 2 + 14);
-      }
-
-      // ── Rotation countdown (only if rotation is actually active with real timer) ──
-      if (connected && ipStatus.rotationSec > 0 && ipStatus.lastRotationTs > 0) {
-        const nowSec = Date.now() / 1000;
-        const elapsed = nowSec - ipStatus.lastRotationTs;
-        const remaining = Math.max(0, Math.ceil(ipStatus.rotationSec - (elapsed % ipStatus.rotationSec)));
-        const em = remaining <= 3 ? (0.5 + Math.sin(t * 6) * 0.5) : 1;
-        ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.textAlign = "right";
-        ctx.fillStyle = col + (Math.floor(255 * em).toString(16).padStart(2, '0'));
-        ctx.fillText(remaining + 's', w - 12, 12);
-        ctx.font = '6px "JetBrains Mono", monospace';
-        ctx.fillStyle = col + '55';
-        ctx.fillText('NEXT ROT', w - 12, 22);
       }
 
       requestAnimationFrame(draw);
