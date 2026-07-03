@@ -400,7 +400,7 @@ const App: React.FC = () => {
         <GlobeWheelWrapper>
         <div style={{ position: "relative", height: 380 }}>
           <div style={{ width: "100%", height: "100%", borderRadius: 8, overflow: "hidden" }}>
-            <GlobeComponent nodes={data.nodes || []} compact onLogout={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }} />
+            <GlobeComponent nodes={data.nodes || []} compact />
           </div>
           {/* Title overlay top-left */}
           <div style={{ position: "absolute", top: 10, left: 14, zIndex: 5000 }}>
@@ -409,6 +409,15 @@ const App: React.FC = () => {
               <span style={{ color: '#334', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>C2 v2.0</span>
             </div>
             <div style={{ color: '#00ff8877', fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: 'italic', letterSpacing: 2, fontWeight: 300 }}>Fear the ones who own the dark</div>
+            <button
+              onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
+              style={{
+                marginTop: 8, color: "#ff475788", fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
+                background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.2)",
+                borderRadius: 4, padding: "3px 10px", cursor: "pointer", fontWeight: 600,
+                letterSpacing: 1,
+              }}
+            >LOGOUT</button>
           </div>
           {/* Badges overlay top-right */}
           <div style={{ position: "absolute", top: 6, right: 6, zIndex: 5000, display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
