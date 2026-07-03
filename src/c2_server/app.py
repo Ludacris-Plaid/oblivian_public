@@ -1647,6 +1647,11 @@ async def tor_check_ip():
         "Switzerland": "185.183.34.119", "Japan": "103.236.201.110",
         "Singapore": "209.58.185.34", "UK": "185.100.87.192",
         "Romania": "89.47.232.5", "Canada": "199.249.223.71",
+        "Australia": "103.251.167.10", "Brazil": "177.54.148.34",
+        "Argentina": "190.210.42.5", "India": "103.16.27.200",
+        "Russia": "185.220.101.42", "Italy": "185.56.68.21",
+        "Spain": "185.35.202.17", "United States": "199.249.223.99",
+        "US": "199.249.223.99",
     }
     exit_country = tor_engine.current_exit_node or "unknown"
     exit_ip = exits.get(exit_country, "")
