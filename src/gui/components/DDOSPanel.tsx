@@ -32,15 +32,15 @@ const DDOSPanel: React.FC = () => {
         const d = await r.json();
         setStatus(d);
         if (d.stats) {
-          if (d.stats.requests_per_second > peakRps) setPeakRps(d.stats.requests_per_second);
-          if (d.stats.bandwidth_gbps > peakGbps) setPeakGbps(d.stats.bandwidth_gbps);
+          setPeakRps(prev => Math.max(prev, d.stats.requests_per_second || 0));
+          setPeakGbps(prev => Math.max(prev, d.stats.bandwidth_gbps || 0));
         }
       } catch {}
     };
     poll();
     const id = setInterval(poll, 1500);
     return () => clearInterval(id);
-  }, [peakRps, peakGbps]);
+  }, []);
 
   useEffect(() => {
     if (status.current_attack && !attacksRef.current.find(a => a.target === status.current_attack?.target && a.type === status.current_attack?.type && a.status === "active")) {

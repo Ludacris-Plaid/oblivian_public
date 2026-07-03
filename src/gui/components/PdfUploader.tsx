@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from "../config";
 
 interface PdfUploaderProps {
   sendMessage: (msg: string) => void;
@@ -26,7 +27,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ sendMessage }) => {
 
   const fetchInfectedPdfs = useCallback(async () => {
     try {
-      const res = await fetch("/api/pdf/list");
+      const res = await fetch(API_URL + "/api/pdf/list");
       const data = await res.json();
       setInfectedPdfs(data.pdfs || []);
     } catch {
@@ -65,7 +66,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ sendMessage }) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const uploadRes = await fetch("/api/pdf/upload", { method: "POST", body: formData });
+      const uploadRes = await fetch(API_URL + "/api/pdf/upload", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
 
       if (uploadData.status === "error") throw new Error(uploadData.message);
@@ -75,7 +76,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ sendMessage }) => {
       setProgress(50);
       setStatus("infecting");
 
-      const infectRes = await fetch(`/api/pdf/infect/${id}`, { method: "POST" });
+      const infectRes = await fetch(`${API_URL}/api/pdf/infect/${id}`, { method: "POST" });
       const infectData = await infectRes.json();
 
       setProgress(100);
@@ -226,7 +227,7 @@ const PdfUploader: React.FC<PdfUploaderProps> = ({ sendMessage }) => {
                   </div>
                 </div>
                 <a
-                  href={`/api/pdf/download/${pdf.pdf_id}`}
+                  href={`${API_URL}/api/pdf/download/${pdf.pdf_id}`}
                   download
                   style={styles.downloadBtn}
                 >

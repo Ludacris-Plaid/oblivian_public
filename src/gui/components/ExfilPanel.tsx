@@ -13,10 +13,10 @@ const ExfilPanel: React.FC = () => {
 
   useEffect(() => {
     const poll = async () => {
-      try { const r = await fetch(`${API}/api/exfil/status`); const d = await r.json(); setStatus(d); if (d.stats?.transfer_rate_mbps > peakMbps) setPeakMbps(d.stats.transfer_rate_mbps); } catch {}
+      try { const r = await fetch(`${API}/api/exfil/status`); const d = await r.json(); setStatus(d); setPeakMbps(prev => Math.max(prev, d.stats?.transfer_rate_mbps || 0)); } catch {}
     };
     poll(); const id = setInterval(poll, 2500); return () => clearInterval(id);
-  }, [peakMbps]);
+  }, []);
 
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;
