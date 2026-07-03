@@ -411,13 +411,13 @@ const App: React.FC = () => {
             <div style={{ color: '#00ff8877', fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: 'italic', letterSpacing: 2, fontWeight: 300 }}>Fear the ones who own the dark</div>
           </div>
           {/* Logout button — bottom-left corner of header */}
-          <div style={{ position: "absolute", bottom: 10, left: 14, zIndex: 9000 }}>
+          <div style={{ position: "absolute", bottom: 12, left: 14, zIndex: 9000 }}>
             <button
               onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
               style={{
-                color: "#ff4757", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                color: "#ff4757", fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
                 background: "rgba(255,71,87,0.12)", border: "1px solid rgba(255,71,87,0.35)",
-                borderRadius: 4, padding: "6px 16px", cursor: "pointer", fontWeight: 700,
+                borderRadius: 4, padding: "7px 18px", cursor: "pointer", fontWeight: 700,
                 letterSpacing: 1.5,
               }}
             >LOGOUT</button>
