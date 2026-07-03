@@ -128,18 +128,21 @@ const IPBadge: React.FC = () => {
           const countdown = Math.max(0, Math.ceil(rotationInterval - (elapsed % rotationInterval)));
           const fraction = countdown / rotationInterval;
           const urgency = 1.0 - fraction;
-          const speed = 0.5 + urgency * 3.5;
+          const ringActive = countdown <= 10;
 
-          // ── Radiating rings (KillSwitch style) ──
-          for (let ring = 0; ring < 4; ring++) {
-            const phase = ((t * speed + ring * 1.2) % 3);
-            const radius = ringR + 3 + phase * 12;
-            const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * (0.3 + urgency * 0.7));
-            ctx.beginPath();
-            ctx.arc(ringX, ringY, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
-            ctx.lineWidth = 1.5 + urgency;
-            ctx.stroke();
+          // ── Radiating rings (KillSwitch style) — only below 10s ──
+          if (ringActive) {
+            const ringSpeed = (1 - countdown / 10) * 4.5 + 0.2;  // slow at 10s, fast at 0s
+            for (let ring = 0; ring < 4; ring++) {
+              const phase = ((t * ringSpeed + ring * 1.2) % 3);
+              const radius = ringR + 3 + phase * 12;
+              const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * (0.2 + urgency * 0.8));
+              ctx.beginPath();
+              ctx.arc(ringX, ringY, radius, 0, Math.PI * 2);
+              ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
+              ctx.lineWidth = 1 + urgency * 2;
+              ctx.stroke();
+            }
           }
 
           // Background ring
