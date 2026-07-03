@@ -187,15 +187,15 @@ const IPBadge: React.FC = () => {
       ctx.font = 'bold 12px "JetBrains Mono", monospace';
       ctx.fillStyle = connected ? '#f0f0f0' : col + 'ee';
       ctx.shadowColor = col; ctx.shadowBlur = connected ? 3 : 0;
-      ctx.fillText(ipStatus.ip, 36, h / 2 - 6);
+      ctx.fillText(ipStatus.ip, 48, h / 2 - 6);
 
       // Label + speed — brighter
       ctx.font = '8px "JetBrains Mono", monospace';
       ctx.fillStyle = connected ? col + 'cc' : col + 'cc';
-      ctx.fillText(ipStatus.label, 36, h / 2 + 14);
+      ctx.fillText(ipStatus.label, 48, h / 2 + 14);
       if (ipStatus.speed && connected) {
         ctx.fillStyle = col + '99';
-        ctx.fillText(ipStatus.speed, 36 + ctx.measureText(ipStatus.label + '  ').width, h / 2 + 14);
+        ctx.fillText(ipStatus.speed, 48 + ctx.measureText(ipStatus.label + '  ').width, h / 2 + 14);
       }
 
       requestAnimationFrame(draw);
