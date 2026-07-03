@@ -29,7 +29,21 @@ const BossMode: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [calcOp, setCalcOp] = useState<string | null>(null);
   const [calcClearNext, setCalcClearNext] = useState(false);
 
-  const [hideUi, setHideUi] = useState(false);
+  const [exitClicks, setExitClicks] = useState(0);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleScreenClick = () => {
+    setExitClicks(prev => {
+      const next = prev + 1;
+      if (next >= 3) {
+        onExit();
+        return 0;
+      }
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = setTimeout(() => setExitClicks(0), 2000);
+      return next;
+    });
+  };
 
   useEffect(() => {
     const c = chartRef.current; if (!c) return;
@@ -147,7 +161,7 @@ const BossMode: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   });
 
   return (
-    <div style={{
+    <div onClick={handleScreenClick} style={{
       position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
       zIndex: 99999, display: "flex", flexDirection: "column",
       background: "#0f172a", color: "#e0e0e0",
