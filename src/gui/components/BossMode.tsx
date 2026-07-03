@@ -336,6 +336,33 @@ const BossMode: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         </div>
       </div>
 
+      {/* Exit click indicator */}
+      {exitClicks > 0 && (
+        <div style={{
+          position: "fixed", bottom: 40, right: 20, zIndex: 100000,
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "8px 14px", borderRadius: 8,
+          background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          animation: "none",
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 11, color: "#94a3b8",
+          transition: "opacity 0.3s ease",
+        }}>
+          <div style={{
+            width: 6, height: 6, borderRadius: "50%",
+            background: exitClicks === 1 ? "#f59e0b" : exitClicks === 2 ? "#ef4444" : "#22c55e",
+            boxShadow: `0 0 8px ${exitClicks === 1 ? "#f59e0b66" : exitClicks === 2 ? "#ef444466" : "#22c55e66"}`,
+          }} />
+          <span>
+            {exitClicks === 1 ? "2 more clicks to return to OBLIVIAN" :
+             exitClicks === 2 ? "1 more click to return to OBLIVIAN" :
+             "Returning to OBLIVIAN..."}
+          </span>
+          <span style={{ fontSize: 9, color: "#475569", marginLeft: 4 }}>(or press `)</span>
+        </div>
+      )}
+
       {/* Bottom bar with exit hint */}
       <div style={{
         height: 28, display: "flex", alignItems: "center", justifyContent: "space-between",
