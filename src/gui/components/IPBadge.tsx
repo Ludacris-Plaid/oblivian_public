@@ -76,45 +76,17 @@ const IPBadge: React.FC = () => {
       const intensityMul = connected ? 1 : 1.5;
       const speed = connected ? 1.2 : 2.5;
 
-      // ── Breathing background (KillSwitch style) ──
+      // ── Breathing background ──
       const breath = 0.04 + Math.sin(t * speed * 0.8) * 0.03;
-      const baseAlpha = connected ? breath : 0.15 + Math.sin(t * 3) * 0.1;
-      if (connected) {
-        ctx.fillStyle = `${col}${Math.floor(baseAlpha * 255).toString(16).padStart(2, '0')}`;
-      } else {
-        ctx.fillStyle = `rgba(255,30,30,${baseAlpha})`;
-      }
+      ctx.fillStyle = `${col}${Math.floor(breath * 255).toString(16).padStart(2, '0')}`;
+      if (!connected) ctx.fillStyle = `rgba(255,30,30,${0.15 + Math.sin(t * 3) * 0.1})`;
       ctx.fillRect(0, 0, w, h);
 
-      // ── Radiating rings from center (KillSwitch style) ──
-      const cx = w / 2, cy = h / 2;
-      const maxR = Math.sqrt(cx * cx + cy * cy);
-      for (let ring = 0; ring < 4; ring++) {
-        const phase = ((t * speed + ring * 1.2) % 3);
-        const radius = 5 + phase * (maxR / 3);
-        const ringAlpha = Math.max(0, (0.4 - phase * 0.13) * intensityMul);
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = col + (Math.floor(ringAlpha * 255).toString(16).padStart(2, '0'));
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      // ── Border pulse (KillSwitch style) ──
+      // ── Border pulse ──
       const borderAlpha = Math.min(0.35, (0.12 + Math.sin(t * speed * 1.5) * 0.06) * intensityMul);
       ctx.strokeStyle = col + (Math.floor(borderAlpha * 255).toString(16).padStart(2, '0'));
       ctx.lineWidth = 1.5;
       ctx.strokeRect(2, 2, w - 4, h - 4);
-
-      // ── Corner marks (KillSwitch style) ──
-      const cornerLen = 8;
-      const ca = Math.min(0.45, (0.2 + Math.sin(t * speed * 1.5) * 0.12) * intensityMul);
-      ctx.strokeStyle = col + (Math.floor(ca * 255).toString(16).padStart(2, '0'));
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(4, 4 + cornerLen); ctx.lineTo(4, 4); ctx.lineTo(4 + cornerLen, 4); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(w - 4 - cornerLen, 4); ctx.lineTo(w - 4, 4); ctx.lineTo(w - 4, 4 + cornerLen); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(4, h - 4 - cornerLen); ctx.lineTo(4, h - 4); ctx.lineTo(4 + cornerLen, h - 4); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(w - 4 - cornerLen, h - 4); ctx.lineTo(w - 4, h - 4); ctx.lineTo(w - 4, h - 4 - cornerLen); ctx.stroke();
 
       // ── Flag ──
       ctx.font = '26px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
