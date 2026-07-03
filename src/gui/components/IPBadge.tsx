@@ -114,34 +114,43 @@ const IPBadge: React.FC = () => {
           ctx.fillRect(bx, by + (16 - bh), 4, bh);
         }
 
-        // ── Proxy rotation countdown ────────────────────────
+        // ── Proxy rotation countdown with wave rings ────────────
+        const ringX = w - 22;
+        const ringY = 12;
+        const ringR = 10;
         const rotationInterval = ipStatus.rotationSec;
         const lastRot = ipStatus.lastRotationTs;
+
         if (connected && rotationInterval > 0) {
           const nowMs = Date.now() / 1000;
-          const startRef = lastRot > 0 ? lastRot : (nowMs - 2); // if no rotation yet, start from ~2s ago
+          const startRef = lastRot > 0 ? lastRot : (nowMs - 2);
           const elapsed = nowMs - startRef;
           const countdown = Math.max(0, Math.ceil(rotationInterval - (elapsed % rotationInterval)));
-          const fraction = countdown / rotationInterval;       // 1.0 → 0.0
-          const urgency = 1.0 - fraction;                       // 0.0 → 1.0
+          const fraction = countdown / rotationInterval;
+          const urgency = 1.0 - fraction;
 
-          // Pulse: gentle at high countdowns, frantic near 0
-          const pulseSpeed = 2 + urgency * 8;
-          const pulseDepth = 0.15 + urgency * 0.6;
-          const em = 0.5 + Math.sin(t * pulseSpeed) * pulseDepth;
+          // Wave rings — start below 10s, intensify as countdown drops
+          const waveActive = countdown <= 10;
+          const waveCount = Math.floor(urgency * 5) + (waveActive ? 1 : 0);
+          const waveAlphaBase = waveActive ? 0.12 + urgency * 0.25 : 0.03;
+          for (let wv = 0; wv < waveCount; wv++) {
+            const wavePhase = ((t * (1 + urgency * 6) + wv * 0.7) % 1);
+            const waveRadius = ringR + 2 + wavePhase * (15 + urgency * 20);
+            const waveAlpha = waveAlphaBase * (1 - wavePhase) * 0.8;
+            ctx.beginPath();
+            ctx.arc(ringX, ringY, waveRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = col + (Math.floor(waveAlpha * 255).toString(16).padStart(2, '0'));
+            ctx.lineWidth = 1.2 + urgency * 1.5;
+            ctx.stroke();
+          }
 
-          // Background ring behind the countdown
-          const ringX = w - 22;
-          const ringY = 12;
-          const ringR = 10;
-
-          // Outer ring pulse
+          // Background ring
           ctx.beginPath();
           ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
           ctx.fillStyle = `${col}${Math.floor(15 + urgency * 30).toString(16).padStart(2, '0')}`;
           ctx.fill();
 
-          // Inner filled ring proportional to countdown progress
+          // Progress arc
           ctx.beginPath();
           ctx.arc(ringX, ringY, ringR - 1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - fraction), false);
           ctx.strokeStyle = col;
@@ -157,15 +166,17 @@ const IPBadge: React.FC = () => {
           ctx.textBaseline = "middle";
           ctx.fillStyle = countdown <= 3 ? col : '#ddd';
           ctx.fillText(String(countdown), ringX, ringY + 1);
-        } else {
-          // Simple pulse dot when no rotation
+        } else if (connected) {
+          // Idle proxy — minimal dot, no yellow light
           ctx.beginPath();
-          ctx.arc(w - 22, 12, 3, 0, Math.PI * 2);
-          ctx.fillStyle = connected ? col : '#ff4757';
-          ctx.shadowColor = connected ? col : '#ff4757';
-          ctx.shadowBlur = connected ? 4 : 2;
+          ctx.arc(ringX, ringY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = col + '55';
           ctx.fill();
-          ctx.shadowBlur = 0;
+          ctx.font = '6px "JetBrains Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = col + '33';
+          ctx.fillText('—', ringX, ringY + 1);
         }
       } else {
         ctx.strokeStyle = col + '60';
