@@ -401,10 +401,11 @@ const scrollToBottom = () => {
                         }}
                         style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
                       >
-                        <motion.span
-                          animate={{ rotate: collapsedThinking.has(msg.id) ? 0 : 90 }}
-                          style={{ color: "#c084fc", fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", display: "inline-block" }}
-                        >▶</motion.span>
+                        <span style={{
+                          color: "#c084fc", fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace",
+                          display: "inline-block", transform: collapsedThinking.has(msg.id) ? "rotate(0deg)" : "rotate(90deg)",
+                          transition: "transform 0.2s ease",
+                        }}>▶</span>
                         <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>
                           CHATZ REASONING
                         </span>
@@ -412,33 +413,25 @@ const scrollToBottom = () => {
                           {collapsedThinking.has(msg.id) ? "show" : "hide"}
                         </span>
                       </div>
-                      <AnimatePresence>
-                        {!collapsedThinking.has(msg.id) && (
-                          <motion.div
-                            key={`think-${msg.id}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            style={{
-                              background: "rgba(168,85,247,0.06)",
-                              borderLeft: "3px solid rgba(168,85,247,0.4)",
-                              borderRadius: "0 6px 6px 0",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              fontSize: 10,
-                              color: "#b0b0d0",
-                              fontStyle: "italic",
-                              lineHeight: 1.7,
-                              whiteSpace: "pre-wrap",
-                              maxHeight: 250,
-                              overflowY: "auto",
-                              padding: "10px 12px",
-                            }}
-                          >
-                            {msg.thinking}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <div style={{
+                        overflow: "hidden",
+                        maxHeight: collapsedThinking.has(msg.id) ? 0 : 250,
+                        opacity: collapsedThinking.has(msg.id) ? 0 : 1,
+                        transition: "max-height 0.3s ease, opacity 0.2s ease",
+                        background: "rgba(168,85,247,0.06)",
+                        borderLeft: "3px solid rgba(168,85,247,0.4)",
+                        borderRadius: "0 6px 6px 0",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 10,
+                        color: "#b0b0d0",
+                        fontStyle: "italic",
+                        lineHeight: 1.7,
+                        whiteSpace: "pre-wrap",
+                        padding: collapsedThinking.has(msg.id) ? "0 12px" : "10px 12px",
+                        overflowY: "auto",
+                      }}>
+                        {msg.thinking}
+                      </div>
                     </div>
                   )}
                   <div style={msg.role === "user" ? styles.userMsg : styles.aiMsg}>
