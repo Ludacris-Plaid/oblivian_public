@@ -271,6 +271,22 @@ class ToolEngine:
         elif tool == "whatweb":
             sites = [l for l in lines if "http" in l.lower() and ("[" in l or "]" in l)]
             return f"{len(sites)} technologies identified" if sites else "WhatWeb scan complete"
+        elif tool == "ffuf":
+            found = [l for l in lines if "Status: 200" in l or "Status: 301" in l or "Status: 302" in l]
+            return f"{len(found)} paths found (200/301/302)" if found else "Ffuf scan complete"
+        elif tool == "impacket":
+            for l in lines:
+                if "cleartext" in l.lower() or "ntlm" in l.lower() or "sam" in l.lower():
+                    return l.strip()[:200]
+            return "Impacket dump complete"
+        elif tool == "john":
+            for l in lines:
+                if "(" in l and ")" in l and ":" not in l.split(" (")[0]:
+                    return l.strip()[:200]
+            return "John cracking complete"
+        elif tool == "searchsploit":
+            exploits = [l for l in lines if "|" in l]
+            return f"{len(exploits)} exploits found" if exploits else "Searchsploit complete"
         return f"Output: {len(output)} chars"
 
     def get_result(self, execution_id: int) -> Optional[dict]:

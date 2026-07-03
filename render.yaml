@@ -16,7 +16,9 @@ services:
       - key: TURSO_AUTH_TOKEN
         sync: false
       - key: REDIS_URL
-        value: redis://red-xxxxxxxx:6379
+        # Get a free Redis URL from Upstash (console.upstash.com → Create Redis → copy UPSTASH_REDIS_REST_URL)
+        # Format: redis://default:yourpassword@your-host.upstash.io:6379
+        sync: false
       - key: PYTHON_VERSION
         value: 3.13.0
 
