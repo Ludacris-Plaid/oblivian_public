@@ -409,25 +409,16 @@ const App: React.FC = () => {
               <span style={{ color: '#334', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}>C2 v2.0</span>
             </div>
             <div style={{ color: '#00ff8877', fontSize: 11, fontFamily: "'Inter', sans-serif", fontStyle: 'italic', letterSpacing: 2, fontWeight: 300 }}>Fear the ones who own the dark</div>
-            <button
-              onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
-              style={{
-                marginTop: 8, color: "#ff475788", fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
-                background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.2)",
-                borderRadius: 4, padding: "3px 10px", cursor: "pointer", fontWeight: 600,
-                letterSpacing: 1,
-              }}
-            >LOGOUT</button>
           </div>
-          {/* Logout button — fixed position */}
-          <div style={{ position: "absolute", bottom: 4, left: 14, zIndex: 5000 }}>
+          {/* Logout button — bottom-left corner of header */}
+          <div style={{ position: "absolute", bottom: 10, left: 14, zIndex: 9000 }}>
             <button
               onClick={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }}
               style={{
-                color: "#ff4757", fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
-                background: "rgba(255,71,87,0.12)", border: "1px solid rgba(255,71,87,0.3)",
-                borderRadius: 4, padding: "4px 12px", cursor: "pointer", fontWeight: 600,
-                letterSpacing: 1,
+                color: "#ff4757", fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                background: "rgba(255,71,87,0.12)", border: "1px solid rgba(255,71,87,0.35)",
+                borderRadius: 4, padding: "6px 16px", cursor: "pointer", fontWeight: 700,
+                letterSpacing: 1.5,
               }}
             >LOGOUT</button>
           </div>
