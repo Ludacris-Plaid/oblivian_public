@@ -58,6 +58,7 @@ const AIChat: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [showProviderMenu, setShowProviderMenu] = useState(false);
   const [selectingProvider, setSelectingProvider] = useState(false);
+  const [expandedThinking, setExpandedThinking] = useState<Record<string, boolean>>({});
 
   const selectProvider = async (name: string) => {
     setSelectingProvider(true);
@@ -374,10 +375,32 @@ const scrollToBottom = () => {
                     {msg.role === "user" ? "You" : "Chatz"}
                   </div>
                   {msg.thinking && (
-                    <details style={{ marginBottom: 8 }}>
-                      <summary style={styles.thinkSummary}>CHATZ REASONING</summary>
-                      <div style={styles.thinkBody}>{msg.thinking}</div>
-                    </details>
+                    <div style={{ marginBottom: 8 }}>
+                      <div
+                        onClick={() => {
+                          setExpandedThinking(prev => ({
+                            ...prev,
+                            [msg.id]: !prev[msg.id]
+                          }));
+                        }}
+                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: 6 }}
+                      >
+                        <span style={{
+                          color: "#c084fc", fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace",
+                          display: "inline-block", transform: expandedThinking[msg.id] ? "rotate(90deg)" : "rotate(0deg)",
+                          transition: "transform 0.2s ease",
+                        }}>▶</span>
+                        <span style={{ color: "#c084fc", fontSize: 9, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>
+                          CHATZ REASONING
+                        </span>
+                        <span style={{ color: "#666", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", marginLeft: "auto" }}>
+                          {expandedThinking[msg.id] ? "hide" : "show"}
+                        </span>
+                      </div>
+                      {expandedThinking[msg.id] && (
+                        <div style={styles.thinkBody}>{msg.thinking}</div>
+                      )}
+                    </div>
                   )}
                   <div style={msg.role === "user" ? styles.userMsg : styles.aiMsg}>
                     {renderContent(msg.content)}
@@ -663,14 +686,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 11,
     lineHeight: 1.3,
   },
-  thinkSummary: {
-    color: "#c084fc", fontSize: 9, fontWeight: 700, cursor: "pointer",
-    fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase" as const,
-    letterSpacing: 1, padding: "5px 8px", borderRadius: 6,
-    background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)",
-    listStyle: "none", userSelect: "none" as const,
-  },
   thinkBody: {
+    background: "rgba(168,85,247,0.06)", borderLeft: "3px solid rgba(168,85,247,0.4)",
+    borderRadius: "0 6px 6px 0", fontFamily: "'JetBrains Mono', monospace",
+    fontSize: 10, color: "#b0b0d0", fontStyle: "italic" as const,
+    lineHeight: 1.7, whiteSpace: "pre-wrap" as const,
+    maxHeight: 250, overflowY: "auto" as const, padding: "10px 12px", marginTop: 4,
+  },
     background: "rgba(168,85,247,0.06)", borderLeft: "3px solid rgba(168,85,247,0.4)",
     borderRadius: "0 6px 6px 0", fontFamily: "'JetBrains Mono', monospace",
     fontSize: 10, color: "#b0b0d0", fontStyle: "italic" as const,
