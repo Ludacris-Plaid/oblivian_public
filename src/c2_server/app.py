@@ -9,7 +9,7 @@ All state is Redis-backed. Nodes register via WebSocket beacon.
 Credentials and evasion data flow through Redis to the dashboard.
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, Body
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -1899,11 +1899,17 @@ if os.path.isdir(dist_dir):
 # ── Geolocation proxy (for ip-api.com) ────────────────────────────────
 
 @app.get("/api/ip-lookup")
-async def ip_lookup(fields: str = "query"):
-    """Proxy for ip-api.com to avoid mixed-content / CORS issues."""
+async def ip_lookup(fields: str = "query", request: Request = None):
+    """Proxy for ip-api.com — passes client IP for accurate geolocation."""
     import httpx
+    # Get client IP from headers (x-forwarded-for) or direct connection
+    forwarded = request.headers.get("x-forwarded-for", "") if request else ""
+    client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request and request.client else "")
+    params = {"fields": fields}
+    if client_ip and client_ip not in ("127.0.0.1", "::1", "localhost"):
+        params["query"] = client_ip
     async with httpx.AsyncClient() as client:
-        r = await client.get(f"http://ip-api.com/json/?fields={fields}", timeout=10)
+        r = await client.get("http://ip-api.com/json/", params=params, timeout=10)
         return r.json()
 
 
