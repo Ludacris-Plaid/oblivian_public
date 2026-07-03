@@ -7,3 +7,4 @@ aiofiles
 cryptography
 websockets
 pyyaml
+python-multipart
