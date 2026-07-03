@@ -2186,12 +2186,13 @@ async def debug_headers(request: Request):
 @app.on_event("startup")
 async def startup():
     await c2_server.initialize()
+    # Kill any stale string-typed keys from previous buggy versions before starting subsystems
+    await c2_server.redis.delete("c2:events", "c2:simulation_enabled")
     for dir_path in [PDF_BASE_DIR, INFECTED_PDF_DIR]:
         os.makedirs(dir_path, exist_ok=True)
     await ai_brain.start()
-    # Ensure simulation starts disabled on fresh boot
+    # Ensure simulation starts disabled on fresh boot — purge stale data
     await c2_server.redis.set("c2:simulation_enabled", "0")
-    # Purge any stale simulation data from previous sessions
     await _cleanup_mock_data()
     # Initialize spammer engine schema
     await spammer_engine._ensure_schema()
