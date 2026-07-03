@@ -10,8 +10,6 @@ interface Message {
   timestamp: string;
 }
 
-const API_BASE = "http://localhost:8000";
-
 const AIChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -175,7 +173,7 @@ const scrollToBottom = () => {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`${API_BASE}/api/ai/command`, {
+      const response = await fetch(`${API_URL}/api/ai/command`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat: userMsg.content }),
@@ -256,7 +254,7 @@ const scrollToBottom = () => {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`${API_BASE}/api/ai/mutate`, {
+      const response = await fetch(`${API_URL}/api/ai/mutate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat: strategy }),

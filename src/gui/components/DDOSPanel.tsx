@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import { API_URL } from "../config";
 
-const API = "http://localhost:8000";
+const API = API_URL;
 
 const ATTACK_VISUALS: Record<string, { color: string; glow: string; name: string; particles: number; pattern: "wave" | "bombard" | "creep" | "amplify" | "pulse" }> = {
   http_flood: { color: "#00ff88", glow: "rgba(0,255,136,", name: "HTTP Flood", particles: 60, pattern: "wave" },

@@ -4,7 +4,7 @@ import GlitchNumber from "./GlitchNumber";
 import ToolVisual from "./ToolVisual";
 import { API_URL } from "../config";
 
-const API = "http://localhost:8000";
+const API = API_URL;
 
 interface Tool {
   name: string; description: string; category: string; dangerous: boolean; available: boolean;

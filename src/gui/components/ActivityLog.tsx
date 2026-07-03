@@ -9,7 +9,7 @@ interface Event {
   payload?: Record<string, unknown>;
 }
 
-const API = "http://localhost:8000";
+const API = API_URL;
 const POLL_MS = 2000;
 
 const ICONS: Record<string, string> = {

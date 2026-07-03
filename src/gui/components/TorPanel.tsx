@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import { API_URL } from "../config";
 
-const API = "http://localhost:8000";
+const API = API_URL;
 
 const COUNTRY_FLAGS: Record<string, string> = {
   'Germany': '🇩🇪', 'Netherlands': '🇳🇱', 'France': '🇫🇷', 'Sweden': '🇸🇪',

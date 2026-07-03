@@ -6,7 +6,7 @@ import SmtpManager from "./SmtpManager";
 import ContactImporter from "./ContactImporter";
 import { API_URL } from "../config";
 
-const API = "http://localhost:8000";
+const API = API_URL;
 
 const SpammerPanel: React.FC = () => {
   const [status, setStatus] = useState<any>({ stats: {}, smtp_pool: [], campaign: {}, active: false, contacts_count: 0, tones: [], templates: [] });

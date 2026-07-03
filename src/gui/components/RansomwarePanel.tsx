@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import { API_URL } from "../config";
 
-const API = "http://localhost:8000";
+const API = API_URL;
 
 const RansomwarePanel: React.FC = () => {
   const [status, setStatus] = useState<any>({ stats: {}, victims: [], active: false });
