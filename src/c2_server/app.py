@@ -1763,10 +1763,18 @@ async def kill_switch(data: dict = Body(...)):
         results["simulation"] = "stopped+cleaned"
     else:
         results["simulation"] = "already_off"
-    # 3. Wipe Redis
+    # 3. Wipe Redis (SCAN + DELETE for Upstash which doesn't support FLUSHALL on free tier)
     if c2_server.redis_ready:
-        await c2_server.redis.flushall()
-        results["redis"] = "flushed"
+        cursor = 0
+        deleted = 0
+        while True:
+            cursor, keys = await c2_server.redis.scan(cursor=cursor, count=500)
+            if keys:
+                await c2_server.redis.delete(*keys)
+                deleted += len(keys)
+            if cursor == 0:
+                break
+        results["redis"] = f"flushed_{deleted}_keys"
     else:
         results["redis"] = "unavailable"
     # 4. Clear events
