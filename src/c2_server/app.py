@@ -1661,6 +1661,7 @@ async def tor_check_ip():
         "real_ip": "", "real_country": "", "real_isp": "",
         "exit_ip": exit_ip, "exit_country": exit_country,
         "exit_node": tor_engine.current_exit_node,
+        "circuit_nodes": tor_engine.circuit_nodes or [],
         "latency_ms": 0,
         "checked_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }

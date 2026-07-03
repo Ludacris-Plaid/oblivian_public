@@ -78,20 +78,23 @@ const IPBadge: React.FC = () => {
 
       // Background
       if (!connected) {
-        ctx.fillStyle = 'rgba(255,30,30,0.15)';
+        ctx.fillStyle = 'rgba(255,30,30,0.25)';
         ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = `rgba(255,50,50,${0.15 + Math.sin(t * 3) * 0.1})`;
+        ctx.fillStyle = `rgba(255,50,50,${0.25 + Math.sin(t * 3) * 0.15})`;
         ctx.fillRect(0, 0, w, h);
       } else {
-        ctx.fillStyle = col + '06';
+        ctx.fillStyle = col + '18';
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Semi-thick outline border
-      const borderPulse = connected ? 0.35 + Math.sin(t * 1.2) * 0.12 : 0.5 + Math.sin(t * 2.5) * 0.2;
+      // Semi-thick outline border with glow
+      const borderPulse = connected ? 0.6 + Math.sin(t * 1.2) * 0.25 : 0.5 + Math.sin(t * 2.5) * 0.2;
+      ctx.shadowColor = col;
+      ctx.shadowBlur = connected ? 6 : 3;
       ctx.strokeStyle = col + (Math.floor(borderPulse * 255).toString(16).padStart(2, '0'));
       ctx.lineWidth = 3;
       ctx.strokeRect(2, 2, w - 4, h - 4);
+      ctx.shadowBlur = 0;
 
       // Connected animation
       if (connected) {
@@ -102,14 +105,22 @@ const IPBadge: React.FC = () => {
           ctx.fillStyle = col + (Math.floor(Math.sin(phase * Math.PI) * 0.5 * 255).toString(16).padStart(2, '0'));
           ctx.fillRect(x, y, 2, 4);
         }
-        // Signal bars
+        // Signal bars — brighter
         for (let bar = 0; bar < 3; bar++) {
-          const bh = 6 + Math.sin(t * 2.5 + bar * 1.5) * 4 + 8;
+          const bh = 8 + Math.sin(t * 2.5 + bar * 1.5) * 5 + 10;
           const bx = w - 34 + bar * 7;
           const by = h - 30;
-          ctx.fillStyle = col + '70';
-          ctx.fillRect(bx, by + (16 - bh), 3, bh);
+          ctx.fillStyle = col + 'bb';
+          ctx.fillRect(bx, by + (16 - bh), 4, bh);
         }
+        // Glow indicator dot
+        ctx.beginPath();
+        ctx.arc(w - 22, 10, 4, 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
       } else {
         ctx.strokeStyle = col + '60';
         ctx.lineWidth = 2;
@@ -120,28 +131,24 @@ const IPBadge: React.FC = () => {
         }
       }
 
-      // Flag — use larger emoji, render fallback text if emoji empty
-      ctx.font = '22px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      const flagDisplay = ipStatus.flag || (ipStatus.ip !== '--' ? '' : '');
-      ctx.fillText(flagDisplay || '🌐', 8, h / 2);
+      // Flag — bigger and bolder
+      ctx.font = '24px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      ctx.shadowColor = col; ctx.shadowBlur = connected ? 4 : 0;
+      ctx.fillText(ipStatus.flag || '🌐', 8, h / 2);
+      ctx.shadowBlur = 0;
 
-      // If no flag emoji rendered, show country code text instead
-      if (!ipStatus.flag) {
-        ctx.font = 'bold 10px "JetBrains Mono", monospace';
-        ctx.fillStyle = col + '88';
-      }
-
-      // IP
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.fillStyle = connected ? col + 'cc' : col + 'ee';
+      // IP — bright white with color shadow
+      ctx.font = 'bold 12px "JetBrains Mono", monospace';
+      ctx.fillStyle = connected ? '#f0f0f0' : col + 'ee';
+      ctx.shadowColor = col; ctx.shadowBlur = connected ? 3 : 0;
       ctx.fillText(ipStatus.ip, 36, h / 2 - 6);
 
-      // Label + speed
-      ctx.font = '7px "JetBrains Mono", monospace';
-      ctx.fillStyle = connected ? col + '88' : col + 'cc';
+      // Label + speed — brighter
+      ctx.font = '8px "JetBrains Mono", monospace';
+      ctx.fillStyle = connected ? col + 'cc' : col + 'cc';
       ctx.fillText(ipStatus.label, 36, h / 2 + 14);
       if (ipStatus.speed && connected) {
-        ctx.fillStyle = col + '66';
+        ctx.fillStyle = col + '99';
         ctx.fillText(ipStatus.speed, 36 + ctx.measureText(ipStatus.label + '  ').width, h / 2 + 14);
       }
 
