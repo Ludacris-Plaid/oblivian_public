@@ -11,40 +11,32 @@ interface Message {
 }
 
 function extractThinking(raw: string): { thinking: string; clean: string } {
-  let thinking = "";
-  let clean = raw;
-  const xmlThink = raw.match(/<think>([\s\S]*?)<\/think>/i) || raw.match(/<\s*thinking\s*>([\s\S]*?)<\s*\/\s*thinking\s*>/i);
+  // Explicit <think> tags (backend wraps reasoning_content from NVIDIA/OpenCode)
+  const xmlThink = raw.match(/<think>([\s\S]*?)<\/think>/i);
   if (xmlThink) {
-    thinking = xmlThink[1].trim();
-    clean = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<\s*thinking\s*>[\s\S]*?<\s*\/\s*thinking\s*>/gi, "").trim();
-  } else {
-    const tpIdx = raw.search(/Thinking Process:/i);
-    if (tpIdx >= 0) {
-      const afterTp = raw.slice(tpIdx);
-      const lines = afterTp.split("\n");
-      let thinkLines: string[] = [];
-      let respLines: string[] = [];
-      let foundResponse = false;
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (!foundResponse) {
-          const trimmed = line.trim();
-          if (i > 2 && trimmed.length > 0 && !trimmed.match(/^(\d+\.|\*|\-|#)/) && trimmed.match(/^[A-Z]/)) {
-            foundResponse = true;
-            respLines.push(line);
-          } else {
-            thinkLines.push(line);
-          }
-        } else {
-          respLines.push(line);
-        }
-      }
-      thinking = thinkLines.join("\n").trim();
-      clean = respLines.join("\n").trim();
-      if (thinking.startsWith("Thinking Process:")) thinking = thinking.replace(/^Thinking Process:\s*/i, "").trim();
-    }
+    return { thinking: xmlThink[1].trim(), clean: raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim() };
   }
-  return { thinking, clean };
+
+  // Featherless / other: thinking inline in content (various formats)
+  const tpMatch = raw.match(/^(Thinking(?: Process)?\.?)\s*\n([\s\S]+?)(?=\n\n)(?=\n\n(?:[A-Z](?:ey|oss|lright|kay|ot|ere|weet|am|ook|up|ight|ow|ell|nyway|ool|ine|one|onsider|our|ased|fter|iven|ith|rom|hat|ow|hy|here|hen|ho|lrighty|kay|ll|his|hat|o)))/im);
+  if (tpMatch) {
+    const thinking = tpMatch[2].trim();
+    const clean = raw.replace(tpMatch[0], "").trim();
+    return { thinking, clean: clean || raw };
+  }
+
+  // Fallback: "Thinking" anywhere followed by numbered steps, then a response
+  const thinkIdx = raw.search(/^Thinking\.?/im);
+  if (thinkIdx === 0) {
+    const rest = raw.replace(/^Thinking\.?\s*/im, "").trim();
+    const parts = rest.split(/\n\n/);
+    if (parts.length >= 2) {
+      return { thinking: parts.slice(0, -1).join("\n\n"), clean: parts[parts.length - 1] };
+    }
+    return { thinking: rest, clean: "" };
+  }
+
+  return { thinking: "", clean: raw };
 }
 
 const AIChat: React.FC = () => {
