@@ -67,8 +67,8 @@ class LLMInterface:
             self.providers.append(LLMProvider(
                 name="opencode",
                 api_key=opencode_key,
-                api_url=os.getenv("OPENCODE_API_URL", "https://api.openai.com/v1/chat/completions"),
-                model=os.getenv("OPENCODE_MODEL", "deepseek-ai/deepseek-v4-flash"),
+                api_url=os.getenv("OPENCODE_API_URL", "https://opencode.ai/zen/go/v1/chat/completions"),
+                model=os.getenv("OPENCODE_MODEL", "deepseek-v4-flash"),
             ))
 
         # Backup: DeepSeek
@@ -152,12 +152,12 @@ class LLMInterface:
                 if provider.name == "deepseek":
                     headers["Accept"] = "application/json"
 
-                resp = httpx.post(
-                    provider.api_url,
-                    json=payload,
-                    headers=headers,
-                    timeout=timeout,
-                )
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    resp = await client.post(
+                        provider.api_url,
+                        json=payload,
+                        headers=headers,
+                    )
                 resp.raise_for_status()
                 result = resp.json()
                 msg = result.get("choices", [{}])[0].get("message", {})

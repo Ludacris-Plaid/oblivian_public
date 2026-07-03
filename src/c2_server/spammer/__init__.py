@@ -434,9 +434,7 @@ class SpammerEngine:
 
         from src.ai_brain.llm import LLMInterface
         llm = LLMInterface()
-        result = await asyncio.to_thread(
-            llm.chat, system_prompt, user_message, temperature=0.8, max_tokens=1024, timeout=30
-        )
+        result = await llm.chat(system_prompt, user_message, temperature=0.8, max_tokens=1024, timeout=45)
 
         if result.get("status") == "success":
             body = result.get("response", "")
@@ -1344,8 +1342,8 @@ class SpammerEngine:
         )
         from src.ai_brain.llm import LLMInterface
         llm = LLMInterface()
-        result = await asyncio.to_thread(
-            llm.chat, system_prompt, f"Create an HTML email for: {prompt}",
+        result = await llm.chat(
+            system_prompt, f"Create an HTML email for: {prompt}",
             temperature=0.8, max_tokens=2048, timeout=45,
         )
         if result.get("status") == "success":
