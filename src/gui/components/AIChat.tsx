@@ -86,11 +86,17 @@ const AIChat: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  // Auto-collapse new reasoning windows
+  // Auto-collapse new reasoning windows only (never re-collapse expanded ones)
+  const seenThinkRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     setCollapsedThinking(prev => {
       const next = new Set(prev);
-      messages.forEach(m => { if (m.thinking) next.add(m.id); });
+      messages.forEach(m => {
+        if (m.thinking && !seenThinkRef.current.has(m.id)) {
+          next.add(m.id);
+          seenThinkRef.current.add(m.id);
+        }
+      });
       return next;
     });
   }, [messages]);
@@ -393,7 +399,7 @@ const scrollToBottom = () => {
                             return next;
                           });
                         }}
-                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: collapsedThinking.has(msg.id) ? 0 : 0 }}
+                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 8px", userSelect: "none", borderRadius: 6, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)", marginBottom: collapsedThinking.has(msg.id) ? 6 : 6 }}
                       >
                         <motion.span
                           animate={{ rotate: collapsedThinking.has(msg.id) ? 0 : 90 }}
@@ -406,9 +412,10 @@ const scrollToBottom = () => {
                           {collapsedThinking.has(msg.id) ? "show" : "hide"}
                         </span>
                       </div>
-                      <AnimatePresence>
+                      <AnimatePresence mode="wait">
                         {!collapsedThinking.has(msg.id) && (
                           <motion.div
+                            key={`think-${msg.id}`}
                             initial={{ height: 0, opacity: 0, padding: 0 }}
                             animate={{ height: "auto", opacity: 1, padding: "10px 12px" }}
                             exit={{ height: 0, opacity: 0, padding: 0 }}
