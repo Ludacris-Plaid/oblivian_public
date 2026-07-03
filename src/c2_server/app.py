@@ -1869,14 +1869,19 @@ async def tools_cancel(execution_id: int):
 dist_dir = os.path.abspath("dist")
 if os.path.isdir(dist_dir):
     app.mount("/assets", StaticFiles(directory=os.path.join(dist_dir, "assets")), name="assets")
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        if full_path.startswith("api/") or full_path.startswith("ws/") or full_path.startswith("openapi") or full_path == "health":
-            return {"detail": "Not Found"}
+    from fastapi.responses import FileResponse
+    from starlette.types import ASGIApp, Scope, Receive, Send
+    @app.exception_handler(404)
+    async def spa_404_handler(request, exc):
+        path = request.url.path
+        if path.startswith("/api/") or path.startswith("/ws/") or path == "/health" or path.startswith("/openapi"):
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
         index = os.path.join(dist_dir, "index.html")
         if os.path.isfile(index):
             return FileResponse(index)
-        return {"detail": "Not Found"}
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
 
 
 # ── Startup ───────────────────────────────────────────────────────────────
