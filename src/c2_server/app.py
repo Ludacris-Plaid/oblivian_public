@@ -1104,9 +1104,20 @@ async def dashboard_endpoint(websocket: WebSocket):
         payload = await build_payload()
         await websocket.send_json(payload)
 
-        while True:
-            try:
-                msg = await websocket.receive_text()
+        async def keepalive():
+            while True:
+                await asyncio.sleep(10)
+                try:
+                    await websocket.send_json({"type": "ping"})
+                except:
+                    break
+
+        keepalive_task = asyncio.create_task(keepalive())
+
+        try:
+            while True:
+                try:
+                    msg = await websocket.receive_text()
 
                 if msg == "refresh":
                     await websocket.send_json(await build_payload())
@@ -1199,6 +1210,7 @@ async def dashboard_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"[!] Dashboard WS outer error: {type(e).__name__}: {e}", exc_info=True)
     finally:
+        keepalive_task.cancel()
         if websocket in dashboard_clients:
             dashboard_clients.remove(websocket)
         logger.info("[-] Dashboard finally")
