@@ -693,12 +693,6 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.7, whiteSpace: "pre-wrap" as const,
     maxHeight: 250, overflowY: "auto" as const, padding: "10px 12px", marginTop: 4,
   },
-    background: "rgba(168,85,247,0.06)", borderLeft: "3px solid rgba(168,85,247,0.4)",
-    borderRadius: "0 6px 6px 0", fontFamily: "'JetBrains Mono', monospace",
-    fontSize: 10, color: "#b0b0d0", fontStyle: "italic" as const,
-    lineHeight: 1.7, whiteSpace: "pre-wrap" as const,
-    maxHeight: 250, overflowY: "auto" as const, padding: "10px 12px", marginTop: 4,
-  },
 };
 
 export default AIChat;
