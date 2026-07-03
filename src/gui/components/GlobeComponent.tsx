@@ -397,7 +397,7 @@ const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
   'Argentina': { lat: -38.4, lng: -63.6 },
 };
 
-const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes = [], compact }) => {
+const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean; onLogout?: () => void }> = ({ nodes = [], compact, onLogout }) => {
   const enrichedNodes = nodes.map(n => ({
     ...n,
     lat: n.lat ?? NODE_GEO[n.id]?.lat ?? null,
@@ -478,12 +478,28 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean }> = ({ nodes
           <button onClick={() => setShowMap(!showMap)} style={{ fontSize: 9, color: showMap ? "#ffd700" : "#aaa", fontFamily: "'JetBrains Mono', monospace", background: "rgba(6,6,14,0.9)", border: "1px solid rgba(255,255,255,0.2)", padding: "3px 10px", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}>{showMap ? '🌐 GLOBE' : '🗺️ MAP'}</button>
         </div>
         {/* Shift+scroll zoom hint */}
-        <div style={{ position: "absolute", top: 98, left: 14, zIndex: 10000, display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, fontWeight: 600 }}>SHIFT</span>
-          <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>+</span>
-          <span style={{ color: "#00ff8866", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>SCROLL</span>
-          <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>=</span>
-          <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>ZOOM</span>
+        <div style={{ position: "absolute", top: 98, left: 14, zIndex: 10000, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, fontWeight: 600 }}>SHIFT</span>
+            <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>+</span>
+            <span style={{ color: "#00ff8866", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>SCROLL</span>
+            <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>=</span>
+            <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>ZOOM</span>
+          </div>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              style={{
+                color: "#ff4757", fontSize: 8, fontFamily: "'JetBrains Mono', monospace",
+                background: "rgba(255,71,87,0.1)", border: "1px solid rgba(255,71,87,0.25)",
+                borderRadius: 4, padding: "3px 8px", cursor: "pointer", fontWeight: 600,
+                letterSpacing: 1,
+              }}
+              title="Log out and return to login screen"
+            >
+              LOGOUT
+            </button>
+          )}
         </div>
         {showMap ? (
           <MapContainer center={[20, 0]} zoom={1.5} style={{ width: "100%", height: "100%" }} zoomControl={false} attributionControl={false} scrollWheelZoom={true} dragging={true}>

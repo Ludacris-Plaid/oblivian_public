@@ -400,7 +400,7 @@ const App: React.FC = () => {
         <GlobeWheelWrapper>
         <div style={{ position: "relative", height: 380 }}>
           <div style={{ width: "100%", height: "100%", borderRadius: 8, overflow: "hidden" }}>
-            <GlobeComponent nodes={data.nodes || []} compact />
+            <GlobeComponent nodes={data.nodes || []} compact onLogout={() => { localStorage.removeItem("virus_auth"); setLoggedIn(false); }} />
           </div>
           {/* Title overlay top-left */}
           <div style={{ position: "absolute", top: 10, left: 14, zIndex: 5000 }}>
