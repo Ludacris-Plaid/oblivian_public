@@ -1902,11 +1902,15 @@ if os.path.isdir(dist_dir):
 async def ip_lookup(fields: str = "query", request: Request = None):
     """Proxy for ip-api.com — passes client IP for accurate geolocation."""
     import httpx
-    # Get client IP from headers (x-forwarded-for) or direct connection
-    forwarded = request.headers.get("x-forwarded-for", "") if request else ""
-    client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request and request.client else "")
+    client_ip = ""
+    if request:
+        for header in ("x-forwarded-for", "x-real-ip", "true-client-ip", "cf-connecting-ip"):
+            val = request.headers.get(header, "")
+            if val:
+                client_ip = val.split(",")[0].strip()
+                break
     params = {"fields": fields}
-    if client_ip and client_ip not in ("127.0.0.1", "::1", "localhost"):
+    if client_ip and client_ip not in ("127.0.0.1", "::1", "localhost", ""):
         params["query"] = client_ip
     async with httpx.AsyncClient() as client:
         r = await client.get("http://ip-api.com/json/", params=params, timeout=10)
