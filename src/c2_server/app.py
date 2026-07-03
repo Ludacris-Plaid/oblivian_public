@@ -153,7 +153,7 @@ async def _cleanup_mock_data():
         pass  # Redis scan may fail on some providers, the TTL cleanup handles it
 
     logger.info(f"[SIM] Cleaned up ALL mock data ({len(keys_to_delete)} direct keys + full-cred records)")
-    await c2_server.redis.set("c2:events", json.dumps([]))  # re-init events as empty list
+    await c2_server.redis.delete("c2:events")  # delete the list and re-init empty
     await c2_server._push_event({
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "type": "system",
@@ -2190,6 +2190,8 @@ async def startup():
     await ai_brain.start()
     # Ensure simulation starts disabled on fresh boot
     await c2_server.redis.set("c2:simulation_enabled", "0")
+    # Purge any stale simulation data from previous sessions
+    await _cleanup_mock_data()
     # Initialize spammer engine schema
     await spammer_engine._ensure_schema()
     logger.info("Spammer engine schema ensured")
