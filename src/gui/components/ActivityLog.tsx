@@ -56,20 +56,47 @@ const BGS: Record<string, string> = {
   operator_command: "rgba(255,110,199,0.08)",
 };
 
-// Noise types: filtered out unless they carry real substance
-const NOISE_TYPES = new Set([
-  "evasion", "mutation", "command",
-]);
-
+// Only show events that are actual operator actions or significant system events
+// Filter out: automated mutation/evasion pulses, routine command dispatches, heartbeats
 function hasSubstance(ev: Event): boolean {
-  if (!NOISE_TYPES.has(ev.type)) return true;
   const p = ev.payload || {};
-  // Keep mutation events that were triggered by user action (not auto)
-  if (ev.type === "mutation" && p.action && !String(p.action).includes("Auto-escalation") && !String(p.action).includes("stepping down")) return true;
-  // Keep evasion events with actual detected methods
-  if (ev.type === "evasion" && p.methods && String(p.methods).length > 10) return true;
-  // Keep explicit user/operator commands
-  if (ev.type === "command" && p.action && String(p.action).length > 3) return true;
+  const t = ev.type;
+
+  // Always show: threats, kill switch, memory burn, tool executions, attack vectors
+  if (t === "log_threat" || t === "kill_switch" || t === "memory_burn" || t === "pdf_infect") return true;
+  if (t === "tool_exec" || t === "command_result" || t === "ransomware" || t === "ddos" || t === "keylogger") return true;
+  if (t === "spammer" || t === "operator_command" || t === "ai_decision") return true;
+
+  // Credential harvests — only show interesting ones
+  if (t === "credential" || t === "browser" || t === "keyring" || t === "autofill" || t === "clipboard" || t === "ssh" || t === "ssh_agent" || t === "git") return true;
+  if (t === "harvest" || t === "system_info") return true;
+
+  // Proxy/TOR/Exfil — only when something actually happened
+  if (t === "proxy" || t === "tor" || t === "exfil" || t === "rotating_proxy") return true;
+
+  // Command — only explicit operator-issued ones (not automated beacon dispatches)
+  if (t === "command") {
+    const action = String(p.action || "");
+    // Only commands with meaningful parameters that indicate a user action
+    if (action === "execute" || action === "change_beacon_interval" || action === "harvest_target" || action === "deploy_payload") return true;
+    if (action === "rotate_ips" || action === "enable_doh" || action === "change_encryption" || action === "silent_mode" || action === "full_scan") return true;
+    // Block: generic "command" dispatches, mutation auto-commands, heartbeat responses
+    return false;
+  }
+
+  // Mutation — only user-triggered or significant changes, not auto-escalation
+  if (t === "mutation") {
+    const action = String(p.action || "");
+    if (action.includes("Auto-escalation") || action.includes("stepping down") || action.includes("Stepping down")) return false;
+    return action.length > 5;
+  }
+
+  // Evasion — only when actual detection methods are reported
+  if (t === "evasion") {
+    const methods = String(p.methods || "");
+    return methods.length > 15;
+  }
+
   return false;
 }
 
