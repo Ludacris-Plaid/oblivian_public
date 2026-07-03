@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install system deps for hacking tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    nmap hydra sqlmap hashcat gobuster smbmap whatweb \
+    nmap hydra sqlmap hashcat gobuster smbmap whatweb ffuf \
     john curl git ruby ruby-dev build-essential wget \
     && rm -rf /var/lib/apt/lists/*
 
@@ -50,7 +50,8 @@ RUN chmod 644 /usr/share/wordlists/rockyou.txt && \
 
 # Install Python deps
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir impacket responder
 
 # Copy source (includes pre-built dist/)
 COPY . .

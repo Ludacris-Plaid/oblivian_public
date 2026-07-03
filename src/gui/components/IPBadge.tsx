@@ -120,9 +120,16 @@ const IPBadge: React.FC = () => {
         }
       }
 
-      // Flag
-      ctx.font = '18px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      ctx.fillText(ipStatus.flag, 8, h / 2);
+      // Flag — use larger emoji, render fallback text if emoji empty
+      ctx.font = '22px sans-serif'; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      const flagDisplay = ipStatus.flag || (ipStatus.ip !== '--' ? '' : '');
+      ctx.fillText(flagDisplay || '🌐', 8, h / 2);
+
+      // If no flag emoji rendered, show country code text instead
+      if (!ipStatus.flag) {
+        ctx.font = 'bold 10px "JetBrains Mono", monospace';
+        ctx.fillStyle = col + '88';
+      }
 
       // IP
       ctx.font = 'bold 11px "JetBrains Mono", monospace';
@@ -170,6 +177,7 @@ function countryCodeToFlag(code: string): string {
   const base = 0x1F1E6;
   const a = code.toUpperCase().charCodeAt(0) - 65;
   const b = code.toUpperCase().charCodeAt(1) - 65;
+  if (a < 0 || a > 25 || b < 0 || b > 25) return '';
   return String.fromCodePoint(base + a, base + b);
 }
 

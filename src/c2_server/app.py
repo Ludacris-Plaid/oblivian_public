@@ -1633,11 +1633,32 @@ async def rotating_proxy_scrape():
     return {"status": "success", "found": found}
 
 
+_rotating_proxy_task: Optional[asyncio.Task] = None
+
+
 @app.post("/api/rotating-proxy/start")
 async def rotating_proxy_start(data: dict = Body(...)):
+    global _rotating_proxy_task
     speed = data.get("speed", 5)
     rotating_proxy_engine.active = True
     rotating_proxy_engine.set_rotation_speed(speed)
+
+    # Cancel existing rotation task if running
+    if _rotating_proxy_task and not _rotating_proxy_task.done():
+        _rotating_proxy_task.cancel()
+
+    async def _rotate_loop():
+        while rotating_proxy_engine.active:
+            await asyncio.sleep(rotating_proxy_engine.stats["rotation_interval_sec"])
+            if not rotating_proxy_engine.active:
+                break
+            try:
+                proxy = rotating_proxy_engine.rotate()
+                logger.info(f"[ROT-PROXY] Auto-rotated to {proxy['host']}:{proxy['port']}")
+            except Exception as e:
+                logger.warning(f"[ROT-PROXY] Rotation error: {e}")
+
+    _rotating_proxy_task = asyncio.create_task(_rotate_loop())
     logger.info(f"[ROT-PROXY] Rotation started at {speed}s")
     await broadcast(await build_payload())
     await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "proxy", "payload": {"action": "rotation_started"}})
@@ -1667,7 +1688,10 @@ async def rotating_proxy_validate():
 
 @app.post("/api/rotating-proxy/stop")
 async def rotating_proxy_stop():
+    global _rotating_proxy_task
     rotating_proxy_engine.stop()
+    if _rotating_proxy_task and not _rotating_proxy_task.done():
+        _rotating_proxy_task.cancel()
     logger.info("[ROT-PROXY] Rotation stopped")
     await broadcast(await build_payload())
     await c2_server._push_event({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "type": "proxy", "payload": {"action": "stop"}})
