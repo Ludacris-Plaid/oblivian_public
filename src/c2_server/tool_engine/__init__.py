@@ -201,6 +201,8 @@ class ToolEngine:
                     result["ports"] = self._parse_nmap_ports(out_text)
                 elif tool_name == "hydra":
                     result["credentials"] = self._parse_hydra_creds(out_text)
+                elif tool_name == "hashcat":
+                    result["cracked"] = self._parse_hashcat_results(out_text)
             else:
                 result["status"] = "failed"
                 result["summary"] = f"Exit code {proc.returncode}"
@@ -318,6 +320,18 @@ class ToolEngine:
                 "version": " ".join(parts[3:]) if len(parts) > 3 else "",
             })
         return ports
+
+    def _parse_hashcat_results(self, output: str) -> list:
+        cracked = []
+        for line in output.split("\n"):
+            if ":" in line and not line.startswith("hashcat") and not line.startswith("Session"):
+                parts = line.split(":")
+                if len(parts) >= 2:
+                    hash_part = parts[0].strip()
+                    pass_part = parts[-1].strip()
+                    if len(hash_part) >= 16 and pass_part and not pass_part.startswith("$"):
+                        cracked.append({"hash": hash_part, "pass": pass_part})
+        return cracked
 
     def _parse_hydra_creds(self, output: str) -> list:
         creds = []
