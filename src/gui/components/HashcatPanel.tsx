@@ -172,7 +172,7 @@ const HashcatPanel: React.FC<{ target?: string; args?: string; onResult?: (r: an
         const found = cracked.find((c: any) => c.hash === h);
         return found ? { ...found } : { hash: h };
       });
-      const count = parsed.filter(p => p.pass).length;
+      const count = parsed.filter((p: any) => p.pass).length;
       setResults(parsed);
       setCrackedCount(count);
 
