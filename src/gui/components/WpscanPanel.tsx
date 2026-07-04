@@ -390,8 +390,8 @@ function parseWpscanOutput(output: string): Array<{ name: string; version: strin
     // Try simpler parsing — look for plugin names
     const pluginLines = output.match(/\[i\] Plugin\[s\]? Found:[\s\S]+?(?=\n\n|\[.*Scan Completed)/i);
     if (pluginLines) {
-      const names = pluginLines[0].match(/\[\+\]\s+(\S+)/g) || [];
-      names.forEach(n => results.push({ name: n.replace(/\[\+\]\s+/, ""), version: "", vulns: 0, cves: [], status: "detected" }));
+      const names: string[] = pluginLines[0].match(/\[\+\]\s+(\S+)/g) || [];
+      names.forEach((n: string) => results.push({ name: n.replace(/\[\+\]\s+/, ""), version: "", vulns: 0, cves: [], status: "detected" }));
     }
   }
   return results;
