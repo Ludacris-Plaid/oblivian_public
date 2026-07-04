@@ -202,6 +202,8 @@ class ToolEngine:
                 result["status"] = "completed"
                 summary = self._summarize(tool_name, out_text)
                 result["summary"] = summary
+                if tool_name == "nmap":
+                    result["ports"] = self._parse_nmap_ports(out_text)
             else:
                 result["status"] = "failed"
                 result["summary"] = f"Exit code {proc.returncode}"
@@ -231,6 +233,41 @@ class ToolEngine:
         return result
 
     def _summarize(self, tool: str, output: str) -> str:
+        lines = output.strip().split("\n")
+        if tool == "nmap":
+            ports = [l for l in lines if "/tcp" in l or "/udp" in l]
+            return f"{len(ports)} ports found" if ports else "Scan complete, no open ports listed"
+        ports = []
+        lines = output.split("\n")
+        in_table = False
+        for line in lines:
+            if line.startswith("PORT") and "STATE" in line and "SERVICE" in line:
+                in_table = True
+                continue
+            if not in_table:
+                continue
+            if line.strip() == "" or line.startswith("Nmap done") or line.startswith("Warning"):
+                if line.strip() == "":
+                    in_table = False
+                continue
+            parts = line.strip().split()
+            if len(parts) < 3:
+                continue
+            pp = parts[0].split("/")
+            if len(pp) != 2:
+                continue
+            try:
+                port = int(pp[0])
+            except ValueError:
+                continue
+            ports.append({
+                "port": port,
+                "protocol": pp[1],
+                "state": parts[1],
+                "service": parts[2] if len(parts) > 2 else "unknown",
+                "version": " ".join(parts[3:]) if len(parts) > 3 else "",
+            })
+        return ports
         lines = output.strip().split("\n")
         if tool == "nmap":
             ports = [l for l in lines if "/tcp" in l or "/udp" in l]
