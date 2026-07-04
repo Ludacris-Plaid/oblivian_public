@@ -5,6 +5,7 @@ import ToolVisual from "./ToolVisual";
 import NmapPanel from "./NmapPanel";
 import HydraPanel from "./HydraPanel";
 import HashcatPanel from "./HashcatPanel";
+import WpscanPanel from "./WpscanPanel";
 import { API_URL } from "../config";
 
 const API = API_URL;
@@ -145,6 +146,15 @@ const ToolsPanel: React.FC = () => {
             <HashcatPanel
               target={toolArgs.hashcat?.target || ""}
               args={toolArgs.hashcat?.args || "-m 0 HASH_FILE /usr/share/wordlists/rockyou.txt"}
+              onResult={(r: any) => setLastResult(r)}
+              standalone
+            />
+          </div>
+        ) : selectedTool === "wpscan" ? (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
+            <WpscanPanel
+              target={toolArgs.wpscan?.target || ""}
+              args={toolArgs.wpscan?.args || "--url TARGET --enumerate vp,vt,u"}
               onResult={(r: any) => setLastResult(r)}
               standalone
             />
