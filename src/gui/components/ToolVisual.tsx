@@ -20,7 +20,6 @@ const TOOL_COLORS: Record<string, string> = {
   sqlmap: "#a855f7",
   hashcat: "#ffd700",
   responder: "#ff6ec7",
-  metasploit: "#ff8c00",
   wpscan: "#00d4ff",
   ffuf: "#88ff44",
   impacket: "#ff2266",

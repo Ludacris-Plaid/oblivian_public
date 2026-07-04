@@ -1,6 +1,6 @@
-"""
-Tool Engine — manage execution of external security tools via subprocess.
-Supports: nmap, metasploit, hydra, sqlmap, hashcat, responder, wpscan.
+"""Tool Engine — manage execution of external security tools via subprocess.
+Supports: nmap, hydra, sqlmap, hashcat, responder, wpscan, ffuf, impacket,
+          john, searchsploit, nikto, gobuster, enum4linux, smbmap, whatweb.
 """
 import asyncio
 import json
@@ -46,11 +46,6 @@ TOOLS: Dict[str, ToolSpec] = {
         "responder", "responder",
         "LLMNR/NBT-NS/mDNS poisoning — capture NetNTLM hashes, SMB credential relay",
         "poisoning", dangerous=True, default_timeout=120,
-    ),
-    "metasploit": ToolSpec(
-        "metasploit", "msfconsole",
-        "Exploitation framework — 3000+ modules, meterpreter, post-exploitation",
-        "exploitation", dangerous=True, default_timeout=300,
     ),
     "wpscan": ToolSpec(
         "wpscan", "wpscan",
@@ -204,6 +199,8 @@ class ToolEngine:
                 result["summary"] = summary
                 if tool_name == "nmap":
                     result["ports"] = self._parse_nmap_ports(out_text)
+                elif tool_name == "hydra":
+                    result["credentials"] = self._parse_hydra_creds(out_text)
             else:
                 result["status"] = "failed"
                 result["summary"] = f"Exit code {proc.returncode}"
@@ -237,41 +234,6 @@ class ToolEngine:
         if tool == "nmap":
             ports = [l for l in lines if "/tcp" in l or "/udp" in l]
             return f"{len(ports)} ports found" if ports else "Scan complete, no open ports listed"
-        ports = []
-        lines = output.split("\n")
-        in_table = False
-        for line in lines:
-            if line.startswith("PORT") and "STATE" in line and "SERVICE" in line:
-                in_table = True
-                continue
-            if not in_table:
-                continue
-            if line.strip() == "" or line.startswith("Nmap done") or line.startswith("Warning"):
-                if line.strip() == "":
-                    in_table = False
-                continue
-            parts = line.strip().split()
-            if len(parts) < 3:
-                continue
-            pp = parts[0].split("/")
-            if len(pp) != 2:
-                continue
-            try:
-                port = int(pp[0])
-            except ValueError:
-                continue
-            ports.append({
-                "port": port,
-                "protocol": pp[1],
-                "state": parts[1],
-                "service": parts[2] if len(parts) > 2 else "unknown",
-                "version": " ".join(parts[3:]) if len(parts) > 3 else "",
-            })
-        return ports
-        lines = output.strip().split("\n")
-        if tool == "nmap":
-            ports = [l for l in lines if "/tcp" in l or "/udp" in l]
-            return f"{len(ports)} ports found" if ports else "Scan complete, no open ports listed"
         elif tool == "hydra":
             for l in lines:
                 if "login:" in l.lower() or "password:" in l.lower():
@@ -288,16 +250,6 @@ class ToolEngine:
                     return l.strip()[:200]
             return "Cracking session complete"
         elif tool == "responder":
-            for l in lines:
-                if "hash" in l.lower() or "poison" in l.lower() or "ntlm" in l.lower():
-                    return l.strip()[:200]
-            return "Poisoning session complete"
-        elif tool == "metasploit":
-            for l in lines:
-                if "session" in l.lower() or "shell" in l.lower() or "meterpreter" in l.lower():
-                    return l.strip()[:200]
-            return "Module execution complete"
-        elif tool == "wpscan":
             found = [l for l in lines if "vulnerabilit" in l.lower() or "identified" in l.lower() or "warning" in l.lower()]
             return f"{len(found)} issues found" if found else "WPScan complete"
         elif tool == "nikto":
@@ -336,6 +288,44 @@ class ToolEngine:
             exploits = [l for l in lines if "|" in l]
             return f"{len(exploits)} exploits found" if exploits else "Searchsploit complete"
         return f"Output: {len(output)} chars"
+
+    def _parse_nmap_ports(self, output: str) -> list:
+        ports = []
+        in_table = False
+        for line in output.split("\n"):
+            if line.startswith("PORT") and "STATE" in line and "SERVICE" in line:
+                in_table = True
+                continue
+            if not in_table:
+                continue
+            if line.strip() == "" or line.startswith("Nmap done") or line.startswith("Warning"):
+                if line.strip() == "":
+                    in_table = False
+                continue
+            parts = line.strip().split()
+            if len(parts) < 3:
+                continue
+            pp = parts[0].split("/")
+            if len(pp) != 2:
+                continue
+            try:
+                port = int(pp[0])
+            except ValueError:
+                continue
+            ports.append({
+                "port": port, "protocol": pp[1], "state": parts[1],
+                "service": parts[2] if len(parts) > 2 else "unknown",
+                "version": " ".join(parts[3:]) if len(parts) > 3 else "",
+            })
+        return ports
+
+    def _parse_hydra_creds(self, output: str) -> list:
+        creds = []
+        for line in output.split("\n"):
+            m = re.search(r"host:\s+\S+\s+login:\s+(\S+)\s+password:\s+(.+)", line, re.I)
+            if m:
+                creds.append({"user": m.group(1), "pass": m.group(2).strip()})
+        return creds
 
     def get_result(self, execution_id: int) -> Optional[dict]:
         for r in reversed(self.history):

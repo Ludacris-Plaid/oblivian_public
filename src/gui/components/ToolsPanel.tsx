@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import ToolVisual from "./ToolVisual";
 import NmapPanel from "./NmapPanel";
+import HydraPanel from "./HydraPanel";
 import { API_URL } from "../config";
 
 const API = API_URL;
@@ -12,7 +13,7 @@ interface Tool {
 }
 
 const COLORS: Record<string, string> = { scanner: "#00ff88", "brute-force": "#ff4757", exploitation: "#a855f7", cracking: "#ffd700", poisoning: "#ff6ec7" };
-const TOOL_COLORS: Record<string, string> = { nmap: "#00ff88", hydra: "#ff4757", sqlmap: "#a855f7", hashcat: "#ffd700", responder: "#ff6ec7", metasploit: "#ff8c00", wpscan: "#00d4ff", ffuf: "#88ff44", impacket: "#ff2266", john: "#ffcc00", searchsploit: "#ff8800" };
+const TOOL_COLORS: Record<string, string> = { nmap: "#00ff88", hydra: "#ff4757", sqlmap: "#a855f7", hashcat: "#ffd700", responder: "#ff6ec7", wpscan: "#00d4ff", ffuf: "#88ff44", impacket: "#ff2266", john: "#ffcc00", searchsploit: "#ff8800" };
 const CAT_ICONS: Record<string, string> = { scanner: "🔍", "brute-force": "🔑", exploitation: "💥", cracking: "⚡", poisoning: "💀" };
 
 const ToolsPanel: React.FC = () => {
@@ -27,7 +28,6 @@ const ToolsPanel: React.FC = () => {
     sqlmap: { target: "", args: '--url "TARGET" --level=1' },
     hashcat: { target: "", args: '-m 0 HASH_FILE /usr/share/wordlists/rockyou.txt' },
     responder: { target: "eth0", args: "-I TARGET" },
-    metasploit: { target: "", args: '-q -x "search auxiliary; exit"' },
     wpscan: { target: "", args: '--url TARGET --enumerate u,p,t' },
     ffuf: { target: "", args: '-u http://TARGET/FUZZ -w /usr/share/wordlists/dirb/common.txt' },
     impacket: { target: "", args: 'TARGET -just-dc -outputfile dump.txt' },
@@ -126,6 +126,15 @@ const ToolsPanel: React.FC = () => {
             <NmapPanel
               target={toolArgs.nmap?.target || ""}
               args={toolArgs.nmap?.args || "-sV -p 1-1000"}
+              onResult={(r: any) => setLastResult(r)}
+              standalone
+            />
+          </div>
+        ) : selectedTool === "hydra" ? (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
+            <HydraPanel
+              target={toolArgs.hydra?.target || ""}
+              args={toolArgs.hydra?.args || "-l admin -P /usr/share/wordlists/rockyou.txt ssh://TARGET"}
               onResult={(r: any) => setLastResult(r)}
               standalone
             />
@@ -243,11 +252,6 @@ const PRESETS: Record<string, { label: string; args: string }[]> = {
     { label: "Listen eth0", args: "-I eth0" },
     { label: "Analyze only", args: "-A" },
     { label: "WPAD proxy", args: "-w" },
-  ],
-  metasploit: [
-    { label: "Search", args: '-q -x "search auxiliary/scanner; exit"' },
-    { label: "Scan SMB", args: '-q -x "use auxiliary/scanner/smb/smb_version; set RHOSTS TARGET; run; exit"' },
-    { label: "Scan HTTP", args: '-q -x "use auxiliary/scanner/http/http_version; set RHOSTS TARGET; run; exit"' },
   ],
   wpscan: [
     { label: "Vuln Scan", args: "--url TARGET --enumerate vp,vt,u" },
