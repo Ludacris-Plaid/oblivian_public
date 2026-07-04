@@ -478,7 +478,7 @@ const GlobeComponent: React.FC<{ nodes?: Node[]; compact?: boolean; onLogout?: (
           <button onClick={() => setShowMap(!showMap)} style={{ fontSize: 9, color: showMap ? "#ffd700" : "#aaa", fontFamily: "'JetBrains Mono', monospace", background: "rgba(6,6,14,0.9)", border: "1px solid rgba(255,255,255,0.2)", padding: "3px 10px", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}>{showMap ? '🌐 GLOBE' : '🗺️ MAP'}</button>
         </div>
         {/* Shift+scroll zoom hint — bottom-left of globe */}
-        <div style={{ position: "absolute", bottom: 10, left: "45%", zIndex: 10000, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ position: "absolute", bottom: 10, left: "32%", zIndex: 10000, display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ color: "#00ff8888", fontSize: 8, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, fontWeight: 600 }}>SHIFT</span>
             <span style={{ color: "#00ff8844", fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }}>+</span>
