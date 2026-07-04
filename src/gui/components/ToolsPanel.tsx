@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import GlitchNumber from "./GlitchNumber";
 import ToolVisual from "./ToolVisual";
+import NmapPanel from "./NmapPanel";
 import { API_URL } from "../config";
 
 const API = API_URL;
@@ -120,7 +121,16 @@ const ToolsPanel: React.FC = () => {
           ))}
         </div>
 
-        {selectedTool && (
+        {selectedTool === "nmap" ? (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
+            <NmapPanel
+              target={toolArgs.nmap?.target || ""}
+              args={toolArgs.nmap?.args || "-sV -p 1-1000"}
+              onResult={(r: any) => setLastResult(r)}
+              standalone
+            />
+          </div>
+        ) : selectedTool ? (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
             <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
@@ -164,7 +174,7 @@ const ToolsPanel: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       <div style={styles.card}>
